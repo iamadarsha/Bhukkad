@@ -10,7 +10,7 @@ export function KotCard({ kot, onStatusChange }: { kot: any, onStatusChange: (id
   const isPreparing = kot.status === 'preparing';
   const isReady = kot.status === 'ready';
 
-  let bgClass = "bg-[#1A1D24] border-white/10";
+  let bgClass = "bg-[var(--md-sys-color-surface-container)] border-[var(--md-sys-color-outline-variant)]";
   if (isPreparing) bgClass = "bg-info/10 border-info/30";
   if (isReady) bgClass = "bg-success/10 border-success/30";
 

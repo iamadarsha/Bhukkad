@@ -21,15 +21,15 @@ export function TableCard({ table, onClick, isSelected }: TableCardProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "available":
-        return "bg-[#F0FFF4] border-[#48BB78] text-[#2F855A]";
+        return "bg-success/10 border-success/40 text-success";
       case "occupied":
-        return "bg-[#FFF5E6] border-[#F6AD55] text-[#DD6B20]";
+        return "bg-warning/10 border-warning/40 text-warning";
       case "reserved":
-        return "bg-[#EBF8FF] border-[#63B3ED] text-[#2B6CB0]";
+        return "bg-info/10 border-info/40 text-info";
       case "dirty":
-        return "bg-[#FFF5F5] border-[#FC8181] text-[#C53030]";
+        return "bg-[var(--md-sys-color-error-container)] border-[var(--md-sys-color-error)] text-[var(--md-sys-color-on-error-container)]";
       default:
-        return "bg-muted border-border text-muted-foreground";
+        return "bg-[var(--md-sys-color-surface-container-highest)] border-[var(--md-sys-color-outline-variant)] text-[var(--md-sys-color-on-surface-variant)]";
     }
   };
 
@@ -85,31 +85,31 @@ export function TableCard({ table, onClick, isSelected }: TableCardProps) {
           </motion.button>
         </TooltipTrigger>
         <TooltipContent side="top" className="flex flex-col gap-1 p-3">
-          <div className="flex items-center justify-between gap-4 border-b border-border/50 pb-2 mb-1">
+          <div className="flex items-center justify-between gap-4 border-b border-[var(--md-sys-color-outline-variant)]/50 pb-2 mb-1">
             <span className="font-bold text-base">Table {table.name}</span>
             <span className={`text-xs font-semibold px-2 py-0.5 rounded-full uppercase tracking-wider ${getStatusColor(table.status)}`}>
               {table.status}
             </span>
           </div>
           
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <div className="flex items-center gap-2 text-sm text-[var(--md-sys-color-on-surface-variant)]">
             <Users className="w-4 h-4" />
             <span>Capacity: {table.capacity}</span>
           </div>
-          
+
           {isOccupied && (
             <>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2 text-sm text-[var(--md-sys-color-on-surface-variant)]">
                 <Users className="w-4 h-4" />
                 <span>Guests: {mockGuests}</span>
               </div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2 text-sm text-[var(--md-sys-color-on-surface-variant)]">
                 <Clock className="w-4 h-4" />
                 <span>Seated: {mockTime}</span>
               </div>
-              <div className="mt-2 pt-2 border-t border-border/50 flex items-center justify-between font-bold text-foreground">
+              <div className="mt-2 pt-2 border-t border-[var(--md-sys-color-outline-variant)]/50 flex items-center justify-between font-bold text-[var(--md-sys-color-on-surface)]">
                 <span>Current Bill:</span>
-                <span className="text-primary">{formatCurrency(mockOrderTotal)}</span>
+                <span className="text-[var(--md-sys-color-primary)]">{formatCurrency(mockOrderTotal)}</span>
               </div>
             </>
           )}

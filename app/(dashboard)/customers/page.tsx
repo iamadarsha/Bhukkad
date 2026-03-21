@@ -16,15 +16,14 @@ export default function CustomersPage() {
     { id: "1", name: "Alice Johnson", phone: "9876543210", email: "alice@example.com", totalOrders: 5, totalSpent: 2500, lastVisit: new Date().toISOString() },
     { id: "2", name: "Bob Smith", phone: "9123456789", email: "bob@example.com", totalOrders: 3, totalSpent: 1200, lastVisit: new Date().toISOString() },
   ]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
-    // Simulated API call
-    setIsLoading(true);
-    setTimeout(() => {
+    const timer = setTimeout(() => {
       setIsLoading(false);
     }, 500);
+    return () => clearTimeout(timer);
   }, []);
 
   const filteredCustomers = customers.filter(
