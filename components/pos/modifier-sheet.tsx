@@ -68,8 +68,8 @@ export function ModifierSheet({ isOpen, onClose, item }: ModifierSheetProps) {
   };
 
   const calculateTotal = () => {
-    let total = item.price;
-    
+    let total = item.basePrice;
+
     // Add modifier prices
     Object.entries(selectedModifiers).forEach(([groupId, modIds]) => {
       const group = item.modifierGroups?.find(g => g.id === groupId);
@@ -118,12 +118,7 @@ export function ModifierSheet({ isOpen, onClose, item }: ModifierSheetProps) {
       }
     }
 
-    addToCart({
-      ...item,
-      quantity,
-      selectedModifiers: cartModifiers,
-      notes
-    });
+    addToCart(item, quantity, cartModifiers, notes);
     
     onClose();
   };
@@ -151,7 +146,7 @@ export function ModifierSheet({ isOpen, onClose, item }: ModifierSheetProps) {
             <div className="p-6 border-b border-border bg-surface flex items-start justify-between">
               <div>
                 <h2 className="text-2xl font-bold">{item.name}</h2>
-                <p className="text-muted-foreground mt-1">{formatCurrency(item.price)}</p>
+                <p className="text-muted-foreground mt-1">{formatCurrency(item.basePrice)}</p>
               </div>
               <button 
                 onClick={onClose}
@@ -191,7 +186,7 @@ export function ModifierSheet({ isOpen, onClose, item }: ModifierSheetProps) {
                     <div className="space-y-2">
                       {group.modifiers.map(mod => {
                         const isSelected = (selectedModifiers[group.id] || []).includes(mod.id);
-                        const isDisabled = !isSelected && group.isMultiple && group.maxSelections && selectedCount >= group.maxSelections;
+                        const isDisabled = !isSelected && group.isMultiple && !!group.maxSelections && selectedCount >= group.maxSelections;
 
                         return (
                           <button

@@ -3,8 +3,8 @@ import './globals.css'; // Global styles
 import { Providers } from '@/components/providers';
 
 export const metadata: Metadata = {
-  title: 'My Google AI Studio App',
-  description: 'My Google AI Studio App',
+  title: 'Bhukkad POS — World-Class Restaurant Management',
+  description: 'Next-generation POS and restaurant management system built with Material Design 3',
 };
 
 export default function RootLayout({children}: {children: React.ReactNode}) {

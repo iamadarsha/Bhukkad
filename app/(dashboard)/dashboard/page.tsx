@@ -1,26 +1,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { 
-  TrendingUp, 
-  Users, 
-  ShoppingBag, 
-  DollarSign, 
-  ArrowUpRight, 
-  ArrowDownRight,
-  Clock,
-  Utensils,
-  Calendar
-} from "lucide-react";
+import { ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
+import { MaterialIcon } from "@/components/ui/material-icon";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
   ResponsiveContainer,
   LineChart,
   Line,
@@ -28,6 +19,14 @@ import {
   Area
 } from "recharts";
 import { formatCurrency } from "@/lib/utils/currency";
+import { useSession } from "next-auth/react";
+
+function getGreeting(): string {
+  const h = new Date().getHours();
+  if (h < 12) return "Good Morning";
+  if (h < 17) return "Good Afternoon";
+  return "Good Evening";
+}
 
 const data = [
   { name: "10 AM", sales: 4000 },
@@ -49,70 +48,81 @@ const topItems = [
 
 export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
+  const { data: session } = useSession();
+  const firstName = session?.user?.name?.split(" ")[0] ?? "Chef";
 
   useEffect(() => {
     setTimeout(() => setIsLoading(false), 1000);
   }, []);
 
   return (
-    <div className="flex-1 p-8 bg-[#F4F7FA] overflow-y-auto">
+    <div className="flex-1 p-8 overflow-y-auto" style={{ background: "var(--md-sys-color-surface)" }}>
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-black tracking-tight text-slate-900">Outlet Dashboard</h1>
-          <p className="text-slate-500 font-medium">Welcome back! Here&apos;s what&apos;s happening today.</p>
+          {/* Personalized time-sensitive greeting */}
+          <p className="text-label-lg font-medium mb-1" style={{ color: "var(--md-sys-color-on-surface-variant)" }}>
+            {getGreeting()}, {firstName} 👋
+          </p>
+          <h1 className="text-headline-sm font-medium" style={{ color: "var(--md-sys-color-on-surface)" }}>
+            Outlet Dashboard
+          </h1>
+          <p className="text-body-md mt-0.5" style={{ color: "var(--md-sys-color-on-surface-variant)" }}>
+            Here&apos;s what&apos;s happening today.
+          </p>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" className="bg-white font-bold">
-            <Calendar className="w-4 h-4 mr-2" />
+          <Button variant="outlined">
+            <MaterialIcon icon="calendar_today" size={16} />
             Today
           </Button>
-          <Button className="font-bold shadow-lg shadow-primary/20">
+          <Button variant="filled">
+            <MaterialIcon icon="download" size={16} />
             Download Report
           </Button>
         </div>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <StatCard 
-          title="Today's Sales" 
-          value={formatCurrency(48250)} 
-          change="+12.5%" 
-          isUp={true} 
-          icon={<DollarSign className="w-5 h-5" />} 
-          color="bg-blue-500"
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <StatCard
+          title="Today's Sales"
+          value={formatCurrency(48250)}
+          change="+12.5%"
+          isUp={true}
+          icon="payments"
+          color="var(--md-sys-color-primary)"
         />
-        <StatCard 
-          title="Total Orders" 
-          value="156" 
-          change="+8.2%" 
-          isUp={true} 
-          icon={<ShoppingBag className="w-5 h-5" />} 
-          color="bg-orange-500"
+        <StatCard
+          title="Total Orders"
+          value="156"
+          change="+8.2%"
+          isUp={true}
+          icon="receipt_long"
+          color="var(--md-sys-color-secondary)"
         />
-        <StatCard 
-          title="Avg. Order Value" 
-          value={formatCurrency(309)} 
-          change="-2.4%" 
-          isUp={false} 
-          icon={<TrendingUp className="w-5 h-5" />} 
-          color="bg-emerald-500"
+        <StatCard
+          title="Avg. Order Value"
+          value={formatCurrency(309)}
+          change="-2.4%"
+          isUp={false}
+          icon="trending_up"
+          color="var(--md-sys-color-tertiary)"
         />
-        <StatCard 
-          title="New Customers" 
-          value="42" 
-          change="+18.7%" 
-          isUp={true} 
-          icon={<Users className="w-5 h-5" />} 
-          color="bg-violet-500"
+        <StatCard
+          title="New Customers"
+          value="42"
+          change="+18.7%"
+          isUp={true}
+          icon="group"
+          color="#386A20"
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Sales Chart */}
-        <Card className="lg:col-span-2 border-none shadow-sm">
+        <Card variant="elevated" className="lg:col-span-2">
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-lg font-bold">Sales Overview</CardTitle>
+            <CardTitle className="text-title-md font-medium">Sales Overview</CardTitle>
             <div className="flex gap-2">
               <div className="flex items-center gap-1.5">
                 <div className="w-3 h-3 rounded-full bg-primary" />
@@ -167,9 +177,9 @@ export default function DashboardPage() {
         </Card>
 
         {/* Top Items */}
-        <Card className="border-none shadow-sm">
+        <Card variant="elevated">
           <CardHeader>
-            <CardTitle className="text-lg font-bold">Top Selling Items</CardTitle>
+            <CardTitle className="text-title-md font-medium">Top Selling Items</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-6">
@@ -196,7 +206,8 @@ export default function DashboardPage() {
                 </div>
               ))}
             </div>
-            <Button variant="ghost" className="w-full mt-6 font-bold text-primary hover:text-primary-dark hover:bg-primary/5">
+            <Button variant="text" className="w-full mt-4">
+              <MaterialIcon icon="expand_more" size={16} />
               View All Items
             </Button>
           </CardContent>
@@ -206,23 +217,48 @@ export default function DashboardPage() {
   );
 }
 
-function StatCard({ title, value, change, isUp, icon, color }: any) {
+function StatCard({ title, value, change, isUp, icon, color }: {
+  title: string;
+  value: string;
+  change: string;
+  isUp: boolean;
+  icon: string;
+  color: string;
+}) {
   return (
-    <Card className="border-none shadow-sm overflow-hidden group hover:shadow-md transition-shadow">
+    <Card variant="elevated" className="overflow-hidden group">
       <CardContent className="p-6">
         <div className="flex items-center justify-between mb-4">
-          <div className={`w-12 h-12 rounded-2xl ${color} flex items-center justify-center text-white shadow-lg shadow-${color.split('-')[1]}-500/20 group-hover:scale-110 transition-transform`}>
-            {icon}
+          <div
+            className="w-11 h-11 rounded-[var(--md-sys-shape-corner-medium)] flex items-center justify-center group-hover:scale-110 transition-transform"
+            style={{ background: color, color: "#fff" }}
+          >
+            <MaterialIcon icon={icon} size={20} fill={1} />
           </div>
-          <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-black ${isUp ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
-            {isUp ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
+          <div
+            className="flex items-center gap-1 px-2 py-1 rounded-full text-label-sm font-semibold"
+            style={
+              isUp
+                ? { background: "color-mix(in srgb, #386A20 12%, transparent)", color: "#386A20" }
+                : { background: "color-mix(in srgb, #B3261E 12%, transparent)", color: "#B3261E" }
+            }
+          >
+            <MaterialIcon icon={isUp ? "trending_up" : "trending_down"} size={12} />
             {change}
           </div>
         </div>
-        <div>
-          <p className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-1">{title}</p>
-          <h3 className="text-2xl font-black text-slate-900">{value}</h3>
-        </div>
+        <p className="text-label-md font-medium uppercase tracking-widest mb-1" style={{ color: "var(--md-sys-color-on-surface-variant)" }}>
+          {title}
+        </p>
+        <h3
+          className="font-semibold revenue-ticker"
+          style={{
+            fontSize: "clamp(20px, 2vw, 28px)",
+            color: "var(--md-sys-color-on-surface)",
+          }}
+        >
+          {value}
+        </h3>
       </CardContent>
     </Card>
   );

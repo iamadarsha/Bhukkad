@@ -107,6 +107,28 @@ const ModalDescription = React.forwardRef<
 ));
 ModalDescription.displayName = DialogPrimitive.Description.displayName;
 
+// Convenience wrapper used by menu/pos modals
+export interface DialogProps {
+  isOpen: boolean;
+  onClose: () => void;
+  title: string;
+  children: React.ReactNode;
+  className?: string;
+}
+
+export function Dialog({ isOpen, onClose, title, children, className }: DialogProps) {
+  return (
+    <Modal open={isOpen} onOpenChange={v => !v && onClose()}>
+      <ModalContent className={className}>
+        <ModalHeader>
+          <ModalTitle>{title}</ModalTitle>
+        </ModalHeader>
+        {children}
+      </ModalContent>
+    </Modal>
+  );
+}
+
 export {
   Modal,
   ModalPortal,

@@ -26,18 +26,17 @@ export async function POST(req: Request) {
     if (!session) return new NextResponse('Unauthorized', { status: 401 });
 
     const body = await req.json();
-    const { name, sku, category, unit, currentStock, minimumStock, costPerUnit } = body;
+    const { name, unit, currentStock, minThreshold, costPerUnit, supplierId } = body;
 
     const [item] = await db.insert(inventoryItems).values({
       id: `inv-${Date.now()}`,
       outletId: session.user.outletId,
       name,
-      sku,
-      category,
-      unit,
+      unit: unit || 'piece',
       currentStock: currentStock || 0,
-      minimumStock: minimumStock || 0,
+      minThreshold: minThreshold || 0,
       costPerUnit: costPerUnit || 0,
+      supplierId: supplierId || null,
     }).returning();
 
     return NextResponse.json(item);

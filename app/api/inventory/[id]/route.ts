@@ -11,10 +11,10 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     if (!session) return new NextResponse('Unauthorized', { status: 401 });
 
     const body = await req.json();
-    const { name, sku, category, unit, currentStock, minimumStock, costPerUnit } = body;
+    const { name, unit, currentStock, minThreshold, costPerUnit, supplierId } = body;
 
     const [updatedItem] = await db.update(inventoryItems)
-      .set({ name, sku, category, unit, currentStock, minimumStock, costPerUnit })
+      .set({ name, unit, currentStock, minThreshold, costPerUnit, supplierId })
       .where(eq(inventoryItems.id, id))
       .returning();
 

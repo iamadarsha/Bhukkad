@@ -11,10 +11,10 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     if (!session) return new NextResponse('Unauthorized', { status: 401 });
 
     const body = await req.json();
-    const { name, phone, email, address, gstNumber } = body;
+    const { name, phone, email, gstin, notes } = body;
 
     const [updatedCustomer] = await db.update(customers)
-      .set({ name, phone, email, address, gstNumber })
+      .set({ name, phone, email, gstin, notes })
       .where(eq(customers.id, id))
       .returning();
 

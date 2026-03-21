@@ -26,16 +26,16 @@ export async function POST(req: Request) {
     if (!session) return new NextResponse('Unauthorized', { status: 401 });
 
     const body = await req.json();
-    const { name, phone, email, address, gstNumber } = body;
+    const { name, phone, email, gstin, notes } = body;
 
     const [customer] = await db.insert(customers).values({
       id: `cust-${Date.now()}`,
       outletId: session.user.outletId,
       name,
       phone,
-      email,
-      address,
-      gstNumber,
+      email: email || null,
+      gstin: gstin || null,
+      notes: notes || null,
     }).returning();
 
     return NextResponse.json(customer);

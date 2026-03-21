@@ -17,7 +17,7 @@ const { handlers, auth: originalAuth, signIn, signOut } = NextAuth({
         password: { label: 'Password', type: 'password' },
         pin: { label: 'PIN', type: 'password' },
       },
-      async authorize(credentials) {
+      async authorize(credentials, _request) {
         console.log("Authorize called with credentials:", credentials);
         if (!credentials) return null;
 

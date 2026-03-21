@@ -1,9 +1,8 @@
 "use client";
 
 import { useSession, signOut } from "next-auth/react";
-import { Bell, Search, User, LogOut, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { MaterialIcon } from "@/components/ui/material-icon";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -35,24 +34,36 @@ export function Header() {
   }
 
   return (
-    <header className="h-16 border-b border-border bg-surface flex items-center justify-between px-6 shrink-0 z-10">
+    <header
+      className="h-14 border-b flex items-center justify-between px-6 shrink-0 z-10"
+      style={{
+        background: "var(--md-sys-color-surface-container-low)",
+        borderColor: "var(--md-sys-color-outline-variant)",
+      }}
+    >
       <div className="flex items-center gap-4">
         <Breadcrumb />
       </div>
 
-      <div className="flex items-center gap-4">
-        <div className="relative hidden md:block w-64">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            type="search"
-            placeholder="Search..."
-            className="w-full pl-9 bg-muted/50 border-transparent focus-visible:bg-surface h-9 rounded-full"
-          />
-        </div>
+      <div className="flex items-center gap-2">
+        {/* MD3 Search bar hint */}
+        <button
+          className="hidden md:flex items-center gap-2 h-9 px-4 rounded-full text-body-md transition-colors"
+          style={{
+            background: "var(--md-sys-color-surface-container)",
+            color: "var(--md-sys-color-on-surface-variant)",
+          }}
+        >
+          <MaterialIcon icon="search" size={18} />
+          <span className="w-40 text-left">Search...</span>
+        </button>
 
-        <Button variant="ghost" size="icon" className="relative text-muted-foreground hover:text-foreground">
-          <Bell className="w-5 h-5" />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-primary rounded-full border-2 border-surface" />
+        <Button variant="ghost" size="icon" className="relative">
+          <MaterialIcon icon="notifications" size={22} style={{ color: "var(--md-sys-color-on-surface-variant)" }} />
+          <span
+            className="absolute top-2 right-2 w-2 h-2 rounded-full"
+            style={{ background: "var(--md-sys-color-error)" }}
+          />
         </Button>
 
         <DropdownMenu>
@@ -77,16 +88,16 @@ export function Header() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem>
-              <User className="mr-2 h-4 w-4" />
+              <MaterialIcon icon="person" size={16} className="mr-2" />
               <span>Profile</span>
             </DropdownMenuItem>
             <DropdownMenuItem>
-              <Settings className="mr-2 h-4 w-4" />
+              <MaterialIcon icon="settings" size={16} className="mr-2" />
               <span>Settings</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => signOut({ callbackUrl: "/dashboard" })} className="text-destructive focus:text-destructive">
-              <LogOut className="mr-2 h-4 w-4" />
+              <MaterialIcon icon="logout" size={16} className="mr-2" />
               <span>Log out</span>
             </DropdownMenuItem>
           </DropdownMenuContent>

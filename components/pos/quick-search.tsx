@@ -51,15 +51,15 @@ export function QuickSearch({ items }: QuickSearchProps) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const filteredItems = query.trim() === "" 
-    ? [] 
-    : items.filter(item => 
+  const filteredItems = query.trim() === ""
+    ? []
+    : items.filter(item =>
         item.name.toLowerCase().includes(query.toLowerCase()) ||
-        item.sku?.toLowerCase().includes(query.toLowerCase())
-      ).slice(0, 5); // Limit to 5 results
+        item.shortCode?.toLowerCase().includes(query.toLowerCase())
+      ).slice(0, 5);
 
   const handleSelect = (item: MenuItem) => {
-    addToCart({ ...item, quantity: 1 });
+    addToCart(item, 1);
     setQuery("");
     setIsOpen(false);
     inputRef.current?.blur();
@@ -111,9 +111,9 @@ export function QuickSearch({ items }: QuickSearchProps) {
                   >
                     <div>
                       <p className="font-semibold">{item.name}</p>
-                      {item.sku && <p className="text-xs text-muted-foreground uppercase">{item.sku}</p>}
+                      {item.shortCode && <p className="text-xs text-muted-foreground uppercase">{item.shortCode}</p>}
                     </div>
-                    <span className="font-bold text-primary">{formatCurrency(item.price)}</span>
+                    <span className="font-bold text-primary">{formatCurrency(item.basePrice)}</span>
                   </button>
                 </li>
               ))}
