@@ -2,21 +2,27 @@ import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
-import { motion } from "motion/react";
 
 /**
  * MD3 Button — 5 variants + FAB variants
  * https://m3.material.io/components/buttons/overview
  *
  * State layers implemented via ::after pseudo-element in globals.css (.state-layer)
+ *
+ * NOTE: motion.div wrapper removed — it broke asChild (Slot) composition by
+ * inserting a non-button DOM element between the trigger and its child.
+ * Use CSS transform on active state instead for the press scale effect.
  */
 const buttonVariants = cva(
   [
     "inline-flex items-center justify-center gap-2 whitespace-nowrap",
     "text-label-lg font-medium tracking-[0.1px]",
-    "transition-all duration-150 ease-out",
-    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--md-sys-color-primary)] focus-visible:ring-offset-2",
+    "transition-all",
+    "duration-[var(--md-sys-motion-duration-short3)]",
+    "[transition-timing-function:var(--md-sys-motion-easing-standard)]",
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--md-sys-color-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--md-sys-color-surface)]",
     "disabled:pointer-events-none disabled:opacity-38",
+    "active:scale-[0.97]",
     "state-layer",
   ].join(" "),
   {
@@ -80,17 +86,11 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, ...props }, ref) => {
     const Comp = asChild ? Slot : "button";
     return (
-      <motion.div
-        whileTap={{ scale: 0.97 }}
-        transition={{ duration: 0.1 }}
-        className="inline-flex"
-      >
-        <Comp
-          className={cn(buttonVariants({ variant, size, className }))}
-          ref={ref}
-          {...props}
-        />
-      </motion.div>
+      <Comp
+        className={cn(buttonVariants({ variant, size, className }))}
+        ref={ref}
+        {...props}
+      />
     );
   }
 );

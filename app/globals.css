@@ -104,6 +104,38 @@
   --shadow-md: var(--md-sys-elevation-2);
   --shadow-lg: var(--md-sys-elevation-3);
   --shadow-focus: 0 0 0 3px color-mix(in srgb, var(--md-sys-color-primary) 30%, transparent);
+
+  /* ═══════════════════════════════════════════════════
+     MD3 MOTION TOKENS
+     ═══════════════════════════════════════════════════ */
+  /* Easing */
+  --md-sys-motion-easing-emphasized: cubic-bezier(0.2, 0, 0, 1);
+  --md-sys-motion-easing-emphasized-decelerate: cubic-bezier(0.05, 0.7, 0.1, 1);
+  --md-sys-motion-easing-emphasized-accelerate: cubic-bezier(0.3, 0, 0.8, 0.15);
+  --md-sys-motion-easing-standard: cubic-bezier(0.2, 0, 0, 1);
+  --md-sys-motion-easing-standard-decelerate: cubic-bezier(0, 0, 0, 1);
+  --md-sys-motion-easing-standard-accelerate: cubic-bezier(0.3, 0, 1, 1);
+
+  /* Duration — Short */
+  --md-sys-motion-duration-short1: 50ms;
+  --md-sys-motion-duration-short2: 100ms;
+  --md-sys-motion-duration-short3: 150ms;
+  --md-sys-motion-duration-short4: 200ms;
+  /* Duration — Medium */
+  --md-sys-motion-duration-medium1: 250ms;
+  --md-sys-motion-duration-medium2: 300ms;
+  --md-sys-motion-duration-medium3: 350ms;
+  --md-sys-motion-duration-medium4: 400ms;
+  /* Duration — Long */
+  --md-sys-motion-duration-long1: 450ms;
+  --md-sys-motion-duration-long2: 500ms;
+  --md-sys-motion-duration-long3: 550ms;
+  --md-sys-motion-duration-long4: 600ms;
+  /* Duration — Extra Long */
+  --md-sys-motion-duration-extra-long1: 700ms;
+  --md-sys-motion-duration-extra-long2: 800ms;
+  --md-sys-motion-duration-extra-long3: 900ms;
+  --md-sys-motion-duration-extra-long4: 1000ms;
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -210,7 +242,7 @@
   border-radius: inherit;
   background-color: currentColor;
   opacity: 0;
-  transition: opacity 150ms ease;
+  transition: opacity var(--md-sys-motion-duration-short3) var(--md-sys-motion-easing-standard);
   pointer-events: none;
 }
 .state-layer:hover::after { opacity: 0.08; }
@@ -330,13 +362,19 @@ body {
    SMOOTH COLOR TRANSITIONS for theme switching
    ═══════════════════════════════════════════════════════ */
 *, *::before, *::after {
-  transition: background-color 300ms ease, border-color 300ms ease, color 300ms ease;
+  transition: background-color var(--md-sys-motion-duration-medium2) var(--md-sys-motion-easing-standard),
+    border-color var(--md-sys-motion-duration-medium2) var(--md-sys-motion-easing-standard),
+    color var(--md-sys-motion-duration-medium2) var(--md-sys-motion-easing-standard);
 }
 
 /* Exclude interactive transitions from above to avoid delay on hover */
 button, a, input, [role="button"] {
-  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease,
-    opacity 150ms ease, box-shadow 150ms ease, transform 100ms ease;
+  transition: background-color var(--md-sys-motion-duration-short3) var(--md-sys-motion-easing-standard),
+    border-color var(--md-sys-motion-duration-short3) var(--md-sys-motion-easing-standard),
+    color var(--md-sys-motion-duration-short3) var(--md-sys-motion-easing-standard),
+    opacity var(--md-sys-motion-duration-short3) var(--md-sys-motion-easing-standard),
+    box-shadow var(--md-sys-motion-duration-short4) var(--md-sys-motion-easing-standard),
+    transform var(--md-sys-motion-duration-short2) var(--md-sys-motion-easing-emphasized);
 }
 
 /* ═══════════════════════════════════════════════════════

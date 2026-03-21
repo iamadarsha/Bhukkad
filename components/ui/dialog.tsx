@@ -1,7 +1,16 @@
 import * as React from "react"
 import * as DialogPrimitive from "@radix-ui/react-dialog"
-import { X } from "lucide-react"
 import { cn } from "@/lib/utils"
+
+/**
+ * MD3 Dialog
+ * https://m3.material.io/components/dialogs/overview
+ *
+ * - Shape: extra-large (28px)
+ * - Background: surface-container-high
+ * - Scrim: black/32 (MD3 scrim spec)
+ * - Motion: emphasized easing for enter, emphasized-accelerate for exit
+ */
 
 const Dialog = DialogPrimitive.Root
 const DialogTrigger = DialogPrimitive.Trigger
@@ -15,7 +24,12 @@ const DialogOverlay = React.forwardRef<
   <DialogPrimitive.Overlay
     ref={ref}
     className={cn(
-      "fixed inset-0 z-50 bg-black/80  data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+      "fixed inset-0 z-50",
+      "bg-[var(--md-sys-color-scrim)]/32",
+      "data-[state=open]:animate-in data-[state=closed]:animate-out",
+      "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+      "data-[state=open]:duration-[var(--md-sys-motion-duration-medium2)]",
+      "data-[state=closed]:duration-[var(--md-sys-motion-duration-short4)]",
       className
     )}
     {...props}
@@ -32,14 +46,35 @@ const DialogContent = React.forwardRef<
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg",
+        "fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2",
+        "w-full max-w-[560px] min-w-[280px]",
+        "rounded-[var(--md-sys-shape-corner-extra-large)]",
+        "bg-[var(--md-sys-color-surface-container-high)]",
+        "text-[var(--md-sys-color-on-surface)]",
+        "shadow-elevation-3",
+        "p-6 flex flex-col gap-4",
+        "data-[state=open]:animate-in data-[state=closed]:animate-out",
+        "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+        "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
+        "data-[state=open]:duration-[var(--md-sys-motion-duration-medium2)]",
+        "data-[state=closed]:duration-[var(--md-sys-motion-duration-short4)]",
         className
       )}
       {...props}
     >
       {children}
-      <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
-        <X className="h-4 w-4" />
+      <DialogPrimitive.Close
+        className={cn(
+          "absolute right-4 top-4",
+          "inline-flex h-10 w-10 items-center justify-center rounded-full",
+          "text-[var(--md-sys-color-on-surface-variant)]",
+          "opacity-70 hover:opacity-100",
+          "hover:bg-[color-mix(in_srgb,var(--md-sys-color-on-surface)_8%,transparent)]",
+          "focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--md-sys-color-primary)]",
+          "transition-opacity disabled:pointer-events-none"
+        )}
+      >
+        <span className="material-symbols-rounded text-[20px]">close</span>
         <span className="sr-only">Close</span>
       </DialogPrimitive.Close>
     </DialogPrimitive.Content>
@@ -52,10 +87,7 @@ const DialogHeader = ({
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
-    className={cn(
-      "flex flex-col space-y-1.5 text-center sm:text-left",
-      className
-    )}
+    className={cn("flex flex-col gap-2 pr-8", className)}
     {...props}
   />
 )
@@ -66,10 +98,7 @@ const DialogFooter = ({
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
-    className={cn(
-      "flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2",
-      className
-    )}
+    className={cn("flex flex-row justify-end gap-2", className)}
     {...props}
   />
 )
@@ -82,7 +111,7 @@ const DialogTitle = React.forwardRef<
   <DialogPrimitive.Title
     ref={ref}
     className={cn(
-      "text-lg font-semibold leading-none tracking-tight",
+      "text-headline-sm font-medium text-[var(--md-sys-color-on-surface)]",
       className
     )}
     {...props}
@@ -96,7 +125,7 @@ const DialogDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Description
     ref={ref}
-    className={cn("text-sm text-muted-foreground", className)}
+    className={cn("text-body-md text-[var(--md-sys-color-on-surface-variant)]", className)}
     {...props}
   />
 ))

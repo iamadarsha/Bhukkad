@@ -2,9 +2,13 @@
 
 import * as React from "react";
 import { Command as CommandPrimitive } from "cmdk";
-import { Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Modal, ModalContent } from "@/components/ui/modal";
+
+/**
+ * MD3 Command / Search dialog
+ * Uses surface-container for background, MD3 state layers for selection
+ */
 
 const Command = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive>,
@@ -13,7 +17,10 @@ const Command = React.forwardRef<
   <CommandPrimitive
     ref={ref}
     className={cn(
-      "flex h-full w-full flex-col overflow-hidden rounded-md bg-popover text-popover-foreground",
+      "flex h-full w-full flex-col overflow-hidden",
+      "rounded-[var(--md-sys-shape-corner-extra-small)]",
+      "bg-[var(--md-sys-color-surface-container)]",
+      "text-[var(--md-sys-color-on-surface)]",
       className
     )}
     {...props}
@@ -26,8 +33,20 @@ interface CommandDialogProps extends React.ComponentPropsWithoutRef<typeof Modal
 const CommandDialog = ({ children, ...props }: CommandDialogProps) => {
   return (
     <Modal {...props}>
-      <ModalContent className="overflow-hidden p-0 shadow-lg">
-        <Command className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-group]]:px-2 [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-input]]:h-12 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-3 [&_[cmdk-item]_svg]:h-5 [&_[cmdk-item]_svg]:w-5">
+      <ModalContent className="overflow-hidden p-0 shadow-elevation-3">
+        <Command
+          className={[
+            "[&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:py-1.5",
+            "[&_[cmdk-group-heading]]:text-label-sm [&_[cmdk-group-heading]]:font-medium",
+            "[&_[cmdk-group-heading]]:text-[var(--md-sys-color-on-surface-variant)]",
+            "[&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0",
+            "[&_[cmdk-group]]:px-2",
+            "[&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5",
+            "[&_[cmdk-input]]:h-12",
+            "[&_[cmdk-item]]:px-3 [&_[cmdk-item]]:py-3",
+            "[&_[cmdk-item]_svg]:h-5 [&_[cmdk-item]_svg]:w-5",
+          ].join(" ")}
+        >
           {children}
         </Command>
       </ModalContent>
@@ -39,12 +58,20 @@ const CommandInput = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Input>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input>
 >(({ className, ...props }, ref) => (
-  <div className="flex items-center border-b px-3" cmdk-input-wrapper="">
-    <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+  <div
+    className="flex items-center border-b border-[var(--md-sys-color-outline-variant)] px-3"
+    cmdk-input-wrapper=""
+  >
+    <span className="material-symbols-rounded mr-2 text-[20px] text-[var(--md-sys-color-on-surface-variant)] shrink-0">
+      search
+    </span>
     <CommandPrimitive.Input
       ref={ref}
       className={cn(
-        "flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50",
+        "flex h-11 w-full rounded-md bg-transparent py-3 outline-none",
+        "text-body-lg text-[var(--md-sys-color-on-surface)]",
+        "placeholder:text-[var(--md-sys-color-on-surface-variant)]",
+        "disabled:cursor-not-allowed disabled:opacity-38",
         className
       )}
       {...props}
@@ -71,7 +98,7 @@ const CommandEmpty = React.forwardRef<
 >((props, ref) => (
   <CommandPrimitive.Empty
     ref={ref}
-    className="py-6 text-center text-sm"
+    className="py-6 text-center text-body-md text-[var(--md-sys-color-on-surface-variant)]"
     {...props}
   />
 ));
@@ -84,7 +111,11 @@ const CommandGroup = React.forwardRef<
   <CommandPrimitive.Group
     ref={ref}
     className={cn(
-      "overflow-hidden p-1 text-foreground [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground",
+      "overflow-hidden p-1",
+      "text-[var(--md-sys-color-on-surface)]",
+      "[&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:py-1.5",
+      "[&_[cmdk-group-heading]]:text-label-sm [&_[cmdk-group-heading]]:font-medium",
+      "[&_[cmdk-group-heading]]:text-[var(--md-sys-color-on-surface-variant)]",
       className
     )}
     {...props}
@@ -98,7 +129,7 @@ const CommandSeparator = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <CommandPrimitive.Separator
     ref={ref}
-    className={cn("-mx-1 h-px bg-border", className)}
+    className={cn("-mx-1 h-px bg-[var(--md-sys-color-outline-variant)]", className)}
     {...props}
   />
 ));
@@ -111,7 +142,12 @@ const CommandItem = React.forwardRef<
   <CommandPrimitive.Item
     ref={ref}
     className={cn(
-      "relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none aria-selected:bg-accent aria-selected:text-accent-foreground data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50",
+      "relative flex cursor-default select-none items-center gap-2",
+      "rounded-[var(--md-sys-shape-corner-extra-small)]",
+      "px-3 py-3 text-body-md text-[var(--md-sys-color-on-surface)]",
+      "outline-none transition-colors",
+      "aria-selected:bg-[color-mix(in_srgb,var(--md-sys-color-on-surface)_8%,transparent)]",
+      "data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-38",
       className
     )}
     {...props}
@@ -126,7 +162,7 @@ const CommandShortcut = ({
   return (
     <span
       className={cn(
-        "ml-auto text-xs tracking-widest text-muted-foreground",
+        "ml-auto text-label-sm tracking-widest text-[var(--md-sys-color-on-surface-variant)]",
         className
       )}
       {...props}
