@@ -1,20 +1,46 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Bhukkad POS
 
-# Run and deploy your AI Studio app
+A full-featured restaurant Point-of-Sale and management system built with **Next.js 15, React 19, SQLite, and Material Design 3**.
 
-This contains everything you need to run your app locally.
+> **For Codex / new contributors:** Read [`HANDOVER.md`](./HANDOVER.md) first — it has the full architecture, schema, workflow, and known gaps.
 
-View your app in AI Studio: https://ai.studio/apps/43987cb3-108b-49d0-9885-a7b39b9f4c16
+## Quick Start
 
-## Run Locally
+```bash
+npm install
+npm run db:setup    # create schema + seed demo data
+npm run dev         # http://localhost:3000
+```
 
-**Prerequisites:**  Node.js
+No API keys needed. The app auto-authenticates as `admin` in dev.
 
+## Pages
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+| Route | Description |
+|-------|-------------|
+| `/dashboard` | KPIs, sales chart, top items |
+| `/pos` | Point of Sale — order, cart, payment |
+| `/kitchen` | Kitchen Display System (real-time KOTs) |
+| `/orders` | Order history |
+| `/menu` | Menu items, categories, modifiers |
+| `/tables` | Floor plan & table management |
+| `/customers` | Customer profiles & loyalty |
+| `/inventory` | Stock levels & suppliers |
+| `/reservations` | Table booking |
+| `/reports` | Revenue analytics |
+| `/settings` | Outlet config, staff, billing |
+
+## Scripts
+
+```bash
+npm run dev          # Development (localhost:3000)
+npm run build        # Production build
+npm run start        # Production server
+npm run db:setup     # Fresh DB setup (push schema + seed)
+npm run db:studio    # Drizzle GUI
+npm run lint         # ESLint
+```
+
+## Stack
+
+Next.js 15 · React 19 · TypeScript · TailwindCSS · Material Design 3 · SQLite · Drizzle ORM · NextAuth.js v5 · Zustand · Socket.io · Recharts · Radix UI
