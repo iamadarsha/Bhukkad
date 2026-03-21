@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Modal } from "@/components/ui/modal";
+import { Dialog } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -52,7 +52,8 @@ export function MenuItemModal({ isOpen, onClose, item, categories, onSuccess }: 
     setValue,
     watch,
   } = useForm<MenuItemFormValues>({
-    resolver: zodResolver(menuItemSchema),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    resolver: zodResolver(menuItemSchema) as any,
     defaultValues: {
       name: "",
       description: "",
@@ -141,7 +142,7 @@ export function MenuItemModal({ isOpen, onClose, item, categories, onSuccess }: 
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={item ? "Edit Menu Item" : "Add Menu Item"}>
+    <Dialog isOpen={isOpen} onClose={onClose} title={item ? "Edit Menu Item" : "Add Menu Item"}>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         
         {/* Image Upload */}
@@ -265,6 +266,6 @@ export function MenuItemModal({ isOpen, onClose, item, categories, onSuccess }: 
           </Button>
         </div>
       </form>
-    </Modal>
+    </Dialog>
   );
 }

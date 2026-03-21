@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Plus, Edit, Trash2, Loader2, ChevronDown, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
-import { Modal } from "@/components/ui/modal";
+import { Dialog } from "@/components/ui/modal";
 import { formatCurrency } from "@/lib/utils/currency";
 
 export function ModifiersTab() {
@@ -241,7 +241,7 @@ function GroupModal({ isOpen, onClose, group, onSuccess }: any) {
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={group ? "Edit Group" : "Add Group"}>
+    <Dialog isOpen={isOpen} onClose={onClose} title={group ? "Edit Group" : "Add Group"}>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
           <Label>Name</Label>
@@ -288,7 +288,7 @@ function GroupModal({ isOpen, onClose, group, onSuccess }: any) {
           </Button>
         </div>
       </form>
-    </Modal>
+    </Dialog>
   );
 }
 
@@ -335,7 +335,7 @@ function ModifierModal({ isOpen, onClose, modifier, groupId, onSuccess }: any) {
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={modifier ? "Edit Modifier" : "Add Modifier"}>
+    <Dialog isOpen={isOpen} onClose={onClose} title={modifier ? "Edit Modifier" : "Add Modifier"}>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
           <Label>Name</Label>
@@ -364,6 +364,6 @@ function ModifierModal({ isOpen, onClose, modifier, groupId, onSuccess }: any) {
           </Button>
         </div>
       </form>
-    </Modal>
+    </Dialog>
   );
 }

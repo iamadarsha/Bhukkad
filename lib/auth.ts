@@ -72,8 +72,8 @@ const { handlers, auth: originalAuth, signIn, signOut } = NextAuth({
             name: userRecord.name,
             email: userRecord.email,
             role: userRecord.role?.name,
-            permissions: userRecord.role?.permissions,
-            outletId: userRecord.outletId,
+            permissions: userRecord.role?.permissions ?? undefined,
+            outletId: userRecord.outletId ?? undefined,
           };
         } catch (error) {
           console.error("Authentication error:", error);

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Modal } from "@/components/ui/modal";
+import { Dialog } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -41,7 +41,8 @@ export function CategoryModal({ isOpen, onClose, onSuccess, category }: Category
     watch,
     formState: { errors },
   } = useForm<CategoryFormValues>({
-    resolver: zodResolver(categorySchema),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    resolver: zodResolver(categorySchema) as any,
     defaultValues: {
       name: "",
       emoji: "📁",
@@ -88,7 +89,7 @@ export function CategoryModal({ isOpen, onClose, onSuccess, category }: Category
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={category ? "Edit Category" : "Add Category"}>
+    <Dialog isOpen={isOpen} onClose={onClose} title={category ? "Edit Category" : "Add Category"}>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <div className="grid grid-cols-4 gap-4">
           <div className="space-y-2 col-span-1">
@@ -126,6 +127,6 @@ export function CategoryModal({ isOpen, onClose, onSuccess, category }: Category
           </Button>
         </div>
       </form>
-    </Modal>
+    </Dialog>
   );
 }
