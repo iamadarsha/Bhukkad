@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { TableFloorPlan } from "@/components/pos/table-floor-plan";
 import { ItemGrid } from "@/components/pos/item-grid";
 import { OrderCart } from "@/components/pos/order-cart";
-import { apiClient } from "@/lib/api-client";
 import type { Category, MenuItem, Table } from "@/types";
 import { MaterialIcon } from "@/components/ui/material-icon";
 import { Button } from "@/components/ui/button";
@@ -40,48 +39,43 @@ export default function POSPage() {
 
   const loadData = async () => {
     setIsRefreshing(true);
-    try {
-      const sessionRes = await fetch("/api/auth/session");
-      const session = await sessionRes.json();
-      const outletId = session?.user?.outletId;
-
-      if (outletId) {
-        const { getSocket } = await import("@/lib/socket");
-        const socket = getSocket();
-        socket.emit("pos:join", { outletId });
-
-        socket.on("table:updated", ({ tableId, status }: { tableId: string; status: string }) => {
-          setTables(prev =>
-            prev.map(t => t.id === tableId ? { ...t, status: status as Table["status"] } : t)
-          );
-        });
-      }
-
-      const [catsRes, itemsRes, tablesRes] = await Promise.all([
-        apiClient.get("/menu/categories"),
-        apiClient.get("/menu/items"),
-        apiClient.get("/tables"),
-      ]);
-      setCategories(catsRes.data);
-      setItems(itemsRes.data);
-      setTables(tablesRes.data.tables);
-      setSections(tablesRes.data.sections);
-    } catch (error) {
-      console.error("Failed to load POS data", error);
-    } finally {
-      setIsLoading(false);
-      setIsRefreshing(false);
-    }
+    // Demo data — no database required
+    const demoCategories: Category[] = [
+      { id: "cat-1", name: "Starters",    emoji: "🥗", displayOrder: 1, isActive: true },
+      { id: "cat-2", name: "Main Course", emoji: "🍛", displayOrder: 2, isActive: true },
+      { id: "cat-3", name: "Breads",      emoji: "🫓", displayOrder: 3, isActive: true },
+      { id: "cat-4", name: "Beverages",   emoji: "🥤", displayOrder: 4, isActive: true },
+      { id: "cat-5", name: "Desserts",    emoji: "🍮", displayOrder: 5, isActive: true },
+      { id: "cat-6", name: "Combos",      emoji: "🍱", displayOrder: 6, isActive: true },
+    ];
+    const demoItems: MenuItem[] = [
+      { id: "item-1", name: "Paneer Tikka",    categoryId: "cat-1", basePrice: 220, foodType: "veg",     isActive: true, isBestseller: true,  isChefsSpecial: false, spiceLevel: 2, prepTimeMinutes: 15, tags: [], shortCode: "PNTK" },
+      { id: "item-2", name: "Chicken Tikka",   categoryId: "cat-1", basePrice: 280, foodType: "non_veg", isActive: true, isBestseller: true,  isChefsSpecial: false, spiceLevel: 3, prepTimeMinutes: 20, tags: [], shortCode: "CHTK" },
+      { id: "item-3", name: "Butter Chicken",  categoryId: "cat-2", basePrice: 320, foodType: "non_veg", isActive: true, isBestseller: true,  isChefsSpecial: true,  spiceLevel: 2, prepTimeMinutes: 20, tags: [], shortCode: "BTCH" },
+      { id: "item-4", name: "Dal Makhani",     categoryId: "cat-2", basePrice: 240, foodType: "veg",     isActive: true, isBestseller: false, isChefsSpecial: false, spiceLevel: 1, prepTimeMinutes: 25, tags: [], shortCode: "DLMK" },
+      { id: "item-5", name: "Chicken Biryani", categoryId: "cat-2", basePrice: 350, foodType: "non_veg", isActive: true, isBestseller: true,  isChefsSpecial: true,  spiceLevel: 3, prepTimeMinutes: 30, tags: [], shortCode: "CHBR" },
+      { id: "item-6", name: "Garlic Naan",     categoryId: "cat-3", basePrice:  60, foodType: "veg",     isActive: true, isBestseller: false, isChefsSpecial: false, spiceLevel: 0, prepTimeMinutes: 8,  tags: [], shortCode: "GNAN" },
+      { id: "item-7", name: "Butter Naan",     categoryId: "cat-3", basePrice:  50, foodType: "veg",     isActive: true, isBestseller: false, isChefsSpecial: false, spiceLevel: 0, prepTimeMinutes: 8,  tags: [], shortCode: "BNAN" },
+      { id: "item-8", name: "Lassi",           categoryId: "cat-4", basePrice:  80, foodType: "veg",     isActive: true, isBestseller: false, isChefsSpecial: false, spiceLevel: 0, prepTimeMinutes: 5,  tags: [], shortCode: "LSSI" },
+      { id: "item-9", name: "Gulab Jamun",     categoryId: "cat-5", basePrice:  90, foodType: "veg",     isActive: true, isBestseller: false, isChefsSpecial: false, spiceLevel: 0, prepTimeMinutes: 5,  tags: [], shortCode: "GLJM" },
+    ];
+    const demoTables: Table[] = [
+      { id: "t1", name: "T1", capacity: 4, shape: "square",    status: "available", sectionId: "sec-1", positionX: 100, positionY: 100, width: 80, height: 80 },
+      { id: "t2", name: "T2", capacity: 2, shape: "circle",    status: "available", sectionId: "sec-1", positionX: 250, positionY: 100, width: 70, height: 70 },
+      { id: "t3", name: "T3", capacity: 6, shape: "rectangle", status: "occupied",  sectionId: "sec-1", positionX: 400, positionY: 100, width: 120, height: 70 },
+      { id: "t4", name: "T4", capacity: 4, shape: "square",    status: "available", sectionId: "sec-1", positionX: 100, positionY: 250, width: 80, height: 80 },
+      { id: "t5", name: "T5", capacity: 2, shape: "circle",    status: "reserved",  sectionId: "sec-1", positionX: 250, positionY: 250, width: 70, height: 70 },
+    ];
+    setCategories(demoCategories);
+    setItems(demoItems);
+    setTables(demoTables);
+    setSections([{ id: "sec-1", name: "Ground Floor" }]);
+    setIsLoading(false);
+    setIsRefreshing(false);
   };
 
   useEffect(() => {
     loadData();
-    return () => {
-      import("@/lib/socket").then(({ getSocket }) => {
-        const socket = getSocket();
-        socket.off("table:updated");
-      });
-    };
   }, []);
 
   if (isLoading) {

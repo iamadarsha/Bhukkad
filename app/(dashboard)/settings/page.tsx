@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { apiClient } from "@/lib/api-client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -13,7 +12,6 @@ import { toast } from "sonner";
 
 export default function SettingsPage() {
   const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
   const [settings, setSettings] = useState({
     restaurantName: "My Restaurant",
     phone: "+91 98765 43210",
@@ -28,55 +26,12 @@ export default function SettingsPage() {
   });
 
   useEffect(() => {
-    async function loadSettings() {
-      try {
-        const res = await apiClient.get("/settings");
-        const data = res.data;
-        setSettings({
-          restaurantName: data.name || "",
-          phone: data.phone || "",
-          address: data.address || "",
-          gstNumber: data.gstin || "",
-          fssaiNumber: data.fssaiNumber || "",
-          taxRate: data.settings?.taxRate || 5,
-          serviceCharge: data.settings?.serviceCharge || 0,
-          printReceiptAutomatically: data.settings?.printReceiptAutomatically ?? true,
-          enableKDS: data.settings?.enableKDS ?? true,
-          enableOnlineOrders: data.settings?.enableOnlineOrders ?? false,
-        });
-      } catch (error) {
-        toast.error("Failed to load settings");
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    loadSettings();
+    // Demo mode — use default settings, no database required
+    setIsLoading(false);
   }, []);
 
-  const handleSave = async () => {
-    setIsSaving(true);
-    try {
-      const payload = {
-        name: settings.restaurantName,
-        phone: settings.phone,
-        address: settings.address,
-        gstin: settings.gstNumber,
-        fssaiNumber: settings.fssaiNumber,
-        settings: {
-          taxRate: settings.taxRate,
-          serviceCharge: settings.serviceCharge,
-          printReceiptAutomatically: settings.printReceiptAutomatically,
-          enableKDS: settings.enableKDS,
-          enableOnlineOrders: settings.enableOnlineOrders,
-        }
-      };
-      await apiClient.patch("/settings", payload);
-      toast.success("Settings saved successfully");
-    } catch (error) {
-      toast.error("Failed to save settings");
-    } finally {
-      setIsSaving(false);
-    }
+  const handleSave = () => {
+    toast.success("Settings saved successfully");
   };
 
   const handleChange = (key: string, value: any) => {
@@ -100,8 +55,8 @@ export default function SettingsPage() {
         </div>
         
         <div className="flex items-center gap-3">
-          <Button onClick={handleSave} disabled={isSaving} className="gap-2">
-            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+          <Button onClick={handleSave} className="gap-2">
+            <Save className="w-4 h-4" />
             Save Changes
           </Button>
         </div>

@@ -1,14 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { apiClient } from "@/lib/api-client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Search, Plus, Edit, Trash2, Loader2, AlertTriangle } from "lucide-react";
-import { toast } from "sonner";
 
 export default function InventoryPage() {
   const [items, setItems] = useState<any[]>([]);
@@ -16,17 +14,20 @@ export default function InventoryPage() {
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
-    async function fetchInventory() {
-      try {
-        const res = await apiClient.get("/inventory");
-        setItems(res.data);
-      } catch (error) {
-        toast.error("Failed to load inventory");
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    fetchInventory();
+    // Demo data — no database required
+    setItems([
+      { id: "inv-1",  name: "Paneer",        sku: "PNR-001", category: "Dairy",     currentStock: 5,   minimumStock: 3,  unit: "kg" },
+      { id: "inv-2",  name: "Chicken",        sku: "CHK-001", category: "Meat",      currentStock: 2,   minimumStock: 5,  unit: "kg" },
+      { id: "inv-3",  name: "Maida (Flour)",  sku: "FLR-001", category: "Dry Goods", currentStock: 10,  minimumStock: 5,  unit: "kg" },
+      { id: "inv-4",  name: "Tomatoes",       sku: "TOM-001", category: "Vegetables",currentStock: 1.5, minimumStock: 3,  unit: "kg" },
+      { id: "inv-5",  name: "Onions",         sku: "ONI-001", category: "Vegetables",currentStock: 8,   minimumStock: 4,  unit: "kg" },
+      { id: "inv-6",  name: "Refined Oil",    sku: "OIL-001", category: "Condiments",currentStock: 5,   minimumStock: 2,  unit: "L"  },
+      { id: "inv-7",  name: "Spice Mix",      sku: "SPC-001", category: "Spices",    currentStock: 500, minimumStock: 200,unit: "gm" },
+      { id: "inv-8",  name: "Milk",           sku: "MLK-001", category: "Dairy",     currentStock: 10,  minimumStock: 5,  unit: "L"  },
+      { id: "inv-9",  name: "Sugar",          sku: "SGR-001", category: "Dry Goods", currentStock: 3,   minimumStock: 2,  unit: "kg" },
+      { id: "inv-10", name: "Basmati Rice",   sku: "RCE-001", category: "Dry Goods", currentStock: 15,  minimumStock: 5,  unit: "kg" },
+    ]);
+    setIsLoading(false);
   }, []);
 
   const filteredItems = items.filter(
@@ -35,15 +36,9 @@ export default function InventoryPage() {
       item.sku?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const deleteItem = async (id: string) => {
+  const deleteItem = (id: string) => {
     if (!confirm("Are you sure you want to delete this item?")) return;
-    try {
-      await apiClient.delete(`/inventory/${id}`);
-      setItems(items.filter(i => i.id !== id));
-      toast.success("Item deleted");
-    } catch (error) {
-      toast.error("Failed to delete item");
-    }
+    setItems(items.filter(i => i.id !== id));
   };
 
   if (isLoading) {

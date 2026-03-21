@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { Category, MenuItem } from "@/types";
-import { apiClient } from "@/lib/api-client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,7 +9,6 @@ import { Badge } from "@/components/ui/badge";
 import { Search, Plus, Edit, Trash2, MoreVertical, Filter, Loader2, UtensilsCrossed } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatCurrency } from "@/lib/utils/currency";
-import { toast } from "sonner";
 
 export default function MenuPage() {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -18,20 +16,28 @@ export default function MenuPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const loadData = async () => {
-    setIsLoading(true);
-    try {
-      const [catsRes, itemsRes] = await Promise.all([
-        apiClient.get("/menu/categories"),
-        apiClient.get("/menu/items"),
-      ]);
-      setCategories(catsRes.data);
-      setItems(itemsRes.data);
-    } catch (error) {
-      toast.error("Failed to load menu data");
-    } finally {
-      setIsLoading(false);
-    }
+  const loadData = () => {
+    // Demo data — no database required
+    setCategories([
+      { id: "cat-1", name: "Starters",    emoji: "🥗", displayOrder: 1, isActive: true },
+      { id: "cat-2", name: "Main Course", emoji: "🍛", displayOrder: 2, isActive: true },
+      { id: "cat-3", name: "Breads",      emoji: "🫓", displayOrder: 3, isActive: true },
+      { id: "cat-4", name: "Beverages",   emoji: "🥤", displayOrder: 4, isActive: true },
+      { id: "cat-5", name: "Desserts",    emoji: "🍮", displayOrder: 5, isActive: true },
+      { id: "cat-6", name: "Combos",      emoji: "🍱", displayOrder: 6, isActive: true },
+    ]);
+    setItems([
+      { id: "item-1", name: "Paneer Tikka",    categoryId: "cat-1", basePrice: 220, foodType: "veg",     isActive: true, isBestseller: true,  isChefsSpecial: false, spiceLevel: 2, prepTimeMinutes: 15, tags: [], shortCode: "PNTK" },
+      { id: "item-2", name: "Chicken Tikka",   categoryId: "cat-1", basePrice: 280, foodType: "non_veg", isActive: true, isBestseller: true,  isChefsSpecial: false, spiceLevel: 3, prepTimeMinutes: 20, tags: [], shortCode: "CHTK" },
+      { id: "item-3", name: "Butter Chicken",  categoryId: "cat-2", basePrice: 320, foodType: "non_veg", isActive: true, isBestseller: true,  isChefsSpecial: true,  spiceLevel: 2, prepTimeMinutes: 20, tags: [], shortCode: "BTCH" },
+      { id: "item-4", name: "Dal Makhani",     categoryId: "cat-2", basePrice: 240, foodType: "veg",     isActive: true, isBestseller: false, isChefsSpecial: false, spiceLevel: 1, prepTimeMinutes: 25, tags: [], shortCode: "DLMK" },
+      { id: "item-5", name: "Chicken Biryani", categoryId: "cat-2", basePrice: 350, foodType: "non_veg", isActive: true, isBestseller: true,  isChefsSpecial: true,  spiceLevel: 3, prepTimeMinutes: 30, tags: [], shortCode: "CHBR" },
+      { id: "item-6", name: "Garlic Naan",     categoryId: "cat-3", basePrice:  60, foodType: "veg",     isActive: true, isBestseller: false, isChefsSpecial: false, spiceLevel: 0, prepTimeMinutes: 8,  tags: [], shortCode: "GNAN" },
+      { id: "item-7", name: "Butter Naan",     categoryId: "cat-3", basePrice:  50, foodType: "veg",     isActive: true, isBestseller: false, isChefsSpecial: false, spiceLevel: 0, prepTimeMinutes: 8,  tags: [], shortCode: "BNAN" },
+      { id: "item-8", name: "Lassi",           categoryId: "cat-4", basePrice:  80, foodType: "veg",     isActive: true, isBestseller: false, isChefsSpecial: false, spiceLevel: 0, prepTimeMinutes: 5,  tags: [], shortCode: "LSSI" },
+      { id: "item-9", name: "Gulab Jamun",     categoryId: "cat-5", basePrice:  90, foodType: "veg",     isActive: true, isBestseller: false, isChefsSpecial: false, spiceLevel: 0, prepTimeMinutes: 5,  tags: [], shortCode: "GLJM" },
+    ]);
+    setIsLoading(false);
   };
 
   useEffect(() => {
