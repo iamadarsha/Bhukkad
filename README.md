@@ -1,20 +1,52 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Bhukkad
 
-# Run and deploy your AI Studio app
+Bhukkad is a restaurant operations app built with Next.js, NextAuth, Drizzle ORM, SQLite, and Socket.IO. It includes dashboard analytics, POS flows, menu management, KOT handling, reports, and staff-facing operational tooling.
 
-This contains everything you need to run your app locally.
+## Stack
 
-View your app in AI Studio: https://ai.studio/apps/43987cb3-108b-49d0-9885-a7b39b9f4c16
+- Next.js 15 + React 19
+- NextAuth v5 beta
+- Drizzle ORM + SQLite
+- Tailwind CSS v4
+- Socket.IO for live updates
 
-## Run Locally
+## Local Development
 
-**Prerequisites:**  Node.js
+Prerequisites:
 
+- Node.js 20+
+- npm
+
+Setup:
 
 1. Install dependencies:
    `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
+2. Create a local env file:
+   `cp .env.example .env.local`
+3. Update `.env.local` with a real `AUTH_SECRET` and any optional API keys.
+4. Initialize the database:
+   `npm run db:setup`
+5. Start the app:
    `npm run dev`
+
+The app runs on [http://localhost:3000](http://localhost:3000).
+
+## Scripts
+
+- `npm run dev` — start the Next.js + Socket.IO server in development
+- `npm run build` — build the Next.js app and compile the custom server
+- `npm run start` — run the production server from `dist/server.js`
+- `npm run lint` — run ESLint
+- `npm run db:push` — push the Drizzle schema
+- `npm run db:seed` — seed demo data
+- `npm run db:setup` — schema push + seed
+
+## Environment
+
+See [.env.example](/Users/debadritamukhopadhyay/Bhukkad/.env.example) for supported variables.
+
+## Notes
+
+- Uploaded files are stored in `public/uploads`.
+- Seed data references placeholder avatars and menu imagery in `public/avatars` and `public/menu`.
+- Socket.IO origins can be controlled with `SOCKET_ALLOWED_ORIGINS`.

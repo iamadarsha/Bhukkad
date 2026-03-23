@@ -12,6 +12,7 @@ declare module 'next-auth' {
 
   interface User {
     id: string;
+    image?: string | null;
     role?: string;
     permissions?: string[];
     outletId?: string;
@@ -21,9 +22,19 @@ declare module 'next-auth' {
 export interface Modifier {
   id: string;
   name: string;
-  price: number;
+  priceDelta: number;
+  price?: number;
   isDefault: boolean;
-  isVeg: boolean;
+  isActive?: boolean;
+  isVeg?: boolean;
+}
+
+export interface MenuItemVariant {
+  id: string;
+  itemId?: string;
+  name: string;
+  price: number;
+  isActive?: boolean;
 }
 
 export interface ModifierGroup {
@@ -31,7 +42,8 @@ export interface ModifierGroup {
   name: string;
   minSelections: number;
   maxSelections: number;
-  isMultiple: boolean;
+  selectionType?: 'single' | 'multiple';
+  isMultiple?: boolean;
   isRequired: boolean;
   modifiers: Modifier[];
 }
@@ -52,6 +64,7 @@ export interface MenuItem {
   spiceLevel: number;
   prepTimeMinutes: number;
   tags: string[];
+  variants?: MenuItemVariant[];
   modifierGroups?: ModifierGroup[];
 }
 
@@ -59,6 +72,7 @@ export interface Category {
   id: string;
   name: string;
   emoji?: string;
+  imageUrl?: string | null;
   displayOrder: number;
   isActive: boolean;
 }
@@ -76,14 +90,41 @@ export interface Table {
   height: number;
 }
 
+export interface Customer {
+  id: string;
+  outletId?: string;
+  name: string;
+  phone: string;
+  email?: string | null;
+  address?: string | null;
+  gstNumber?: string | null;
+  loyaltyPoints?: number | null;
+  totalVisits?: number | null;
+  totalOrders?: number | null;
+  totalSpent?: number | null;
+  lastVisit?: string | null;
+  createdAt?: string;
+}
+
+export interface OrderItemModifier {
+  id: string;
+  name?: string;
+  groupId?: string;
+  modifierId: string;
+  modifierName: string;
+  priceDelta: number;
+}
+
 export interface OrderItem {
   id: string;
   itemId: string;
   itemName: string;
+  variantId?: string | null;
+  variantName?: string | null;
   quantity: number;
   unitPrice: number;
   itemTotal: number;
-  modifiers: any[];
+  modifiers: OrderItemModifier[];
   itemNote?: string;
   isVoid: boolean;
   sentToKitchenAt?: string;
@@ -111,4 +152,50 @@ export interface Kot {
   status: 'pending' | 'preparing' | 'ready' | 'served' | 'cancelled';
   createdAt: string;
   items: any[];
+}
+
+export type TabletLanguageCode = 'en' | 'hi';
+
+export interface TabletOrderingSettings {
+  taxRate: number;
+  serviceCharge: number;
+  printReceiptAutomatically: boolean;
+  enableKDS: boolean;
+  enableOnlineOrders: boolean;
+  enableTabletOrdering: boolean;
+  enableQrOrdering: boolean;
+  defaultTabletLanguage: TabletLanguageCode;
+}
+
+export interface TabletTableSummary {
+  id: string;
+  name: string;
+  capacity: number;
+  status: Table['status'];
+  sectionName?: string | null;
+}
+
+export interface TabletMenuItem extends MenuItem {
+  variants?: MenuItemVariant[];
+  modifierGroups?: ModifierGroup[];
+}
+
+export interface TabletMenuCategory {
+  id: string;
+  name: string;
+  emoji?: string | null;
+  imageUrl?: string | null;
+  items: TabletMenuItem[];
+}
+
+export interface TabletOrderingBootstrap {
+  outlet: {
+    id: string;
+    name: string;
+    logoUrl?: string | null;
+    currency: string;
+  };
+  table: TabletTableSummary;
+  settings: TabletOrderingSettings;
+  categories: TabletMenuCategory[];
 }

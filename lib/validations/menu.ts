@@ -24,7 +24,10 @@ export const menuItemSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   description: z.string().max(500).optional(),
   shortCode: z.string().optional(),
-  imageUrl: z.string().url().optional().or(z.literal('')),
+  imageUrl: z
+    .union([z.string().url(), z.string().startsWith('/'), z.literal('')])
+    .optional()
+    .nullable(),
   basePrice: z.number().min(0, 'Price must be positive'),
   foodType: z.enum(['veg', 'non_veg', 'vegan', 'egg']),
   taxCategoryId: z.string().optional(),

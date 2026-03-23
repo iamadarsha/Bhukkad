@@ -7,9 +7,15 @@ import { ThemeProvider } from "next-themes";
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <SessionProvider>
-      <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+      <ThemeProvider
+        attribute="class"
+        defaultTheme="system"
+        enableSystem
+        disableTransitionOnChange
+        storageKey="bhukkad-theme"
+      >
         {children}
-        <Toaster position="top-right" richColors />
+        <Toaster position="top-right" richColors theme="system" />
       </ThemeProvider>
     </SessionProvider>
   );

@@ -19,7 +19,7 @@ export function CategoryTabs({ categories, activeCategory, onSelect }: CategoryT
           <button
             onClick={() => onSelect("all")}
             className={`relative px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-              activeCategory === "all" ? "text-white" : "bg-muted text-text-secondary hover:bg-border"
+              activeCategory === "all" ? "text-primary-foreground" : "bg-muted text-text-secondary hover:bg-border"
             }`}
           >
             {activeCategory === "all" && (
@@ -37,7 +37,7 @@ export function CategoryTabs({ categories, activeCategory, onSelect }: CategoryT
               key={cat.id}
               onClick={() => onSelect(cat.id)}
               className={`relative px-4 py-2 rounded-full text-sm font-medium transition-colors flex items-center gap-2 ${
-                activeCategory === cat.id ? "text-white" : "bg-muted text-text-secondary hover:bg-border"
+                activeCategory === cat.id ? "text-primary-foreground" : "bg-muted text-text-secondary hover:bg-border"
               }`}
             >
               {activeCategory === cat.id && (

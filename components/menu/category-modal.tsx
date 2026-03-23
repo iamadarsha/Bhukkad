@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Modal } from "@/components/ui/modal";
+import { Modal, ModalContent, ModalHeader, ModalTitle } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,7 +21,8 @@ const categorySchema = z.object({
   isActive: z.boolean().default(true),
 });
 
-type CategoryFormValues = z.infer<typeof categorySchema>;
+type CategoryFormInput = z.input<typeof categorySchema>;
+type CategoryFormValues = z.output<typeof categorySchema>;
 
 interface CategoryModalProps {
   isOpen: boolean;
@@ -40,7 +41,7 @@ export function CategoryModal({ isOpen, onClose, onSuccess, category }: Category
     setValue,
     watch,
     formState: { errors },
-  } = useForm<CategoryFormValues>({
+  } = useForm<CategoryFormInput, unknown, CategoryFormValues>({
     resolver: zodResolver(categorySchema),
     defaultValues: {
       name: "",
@@ -88,44 +89,50 @@ export function CategoryModal({ isOpen, onClose, onSuccess, category }: Category
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={category ? "Edit Category" : "Add Category"}>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        <div className="grid grid-cols-4 gap-4">
-          <div className="space-y-2 col-span-1">
-            <Label>Emoji</Label>
-            <Input {...register("emoji")} placeholder="📁" className="text-center text-xl" />
-          </div>
-          <div className="space-y-2 col-span-3">
-            <Label>Name *</Label>
-            <Input {...register("name")} placeholder="e.g. Main Course" />
-            {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
-          </div>
-        </div>
+    <Modal open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <ModalContent>
+        <ModalHeader>
+          <ModalTitle>{category ? "Edit Category" : "Add Category"}</ModalTitle>
+        </ModalHeader>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label>Display Order</Label>
-            <Input type="number" {...register("displayOrder")} />
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <div className="grid grid-cols-4 gap-4">
+            <div className="space-y-2 col-span-1">
+              <Label>Emoji</Label>
+              <Input {...register("emoji")} placeholder="📁" className="text-center text-xl" />
+            </div>
+            <div className="space-y-2 col-span-3">
+              <Label>Name *</Label>
+              <Input {...register("name")} placeholder="e.g. Main Course" />
+              {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
+            </div>
           </div>
-          <div className="flex items-center justify-between p-3 rounded-lg border border-border bg-muted/30">
-            <Label className="cursor-pointer">Active Status</Label>
-            <Switch 
-              checked={watch("isActive")} 
-              onCheckedChange={(val) => setValue("isActive", val)} 
-            />
-          </div>
-        </div>
 
-        <div className="flex justify-end gap-3 pt-4">
-          <Button type="button" variant="outline" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-            {category ? "Update Category" : "Create Category"}
-          </Button>
-        </div>
-      </form>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Display Order</Label>
+              <Input type="number" {...register("displayOrder")} />
+            </div>
+            <div className="flex items-center justify-between p-3 rounded-lg border border-border bg-muted/30">
+              <Label className="cursor-pointer">Active Status</Label>
+              <Switch
+                checked={watch("isActive")}
+                onCheckedChange={(val) => setValue("isActive", val)}
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-3 pt-4">
+            <Button type="button" variant="outline" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              {category ? "Update Category" : "Create Category"}
+            </Button>
+          </div>
+        </form>
+      </ModalContent>
     </Modal>
   );
 }

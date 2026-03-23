@@ -4,12 +4,22 @@ import next from 'next';
 import { Server } from 'socket.io';
 
 const dev = process.env.NODE_ENV !== 'production';
-const hostname = 'localhost';
+const hostname = process.env.HOSTNAME || '0.0.0.0';
 const port = parseInt(process.env.PORT || '3000', 10);
+const displayHost = hostname === '0.0.0.0' ? 'localhost' : hostname;
+const allowedOrigins = (process.env.SOCKET_ALLOWED_ORIGINS || process.env.APP_URL || '')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
 
 // Initialize Next.js app
 const app = next({ dev, hostname, port });
 const handle = app.getRequestHandler();
+const logInDev = (...args: Parameters<typeof console.log>) => {
+  if (dev) {
+    console.log(...args);
+  }
+};
 
 app.prepare().then(() => {
   const server = createServer(async (req, res) => {
@@ -24,29 +34,35 @@ app.prepare().then(() => {
   });
 
   // Initialize Socket.io
-  const io = new Server(server, {
-    cors: {
-      origin: '*',
-      methods: ['GET', 'POST'],
-    },
-  });
+  const io = new Server(
+    server,
+    allowedOrigins.length
+      ? {
+          cors: {
+            origin: allowedOrigins,
+            methods: ['GET', 'POST'],
+            credentials: true,
+          },
+        }
+      : undefined
+  );
 
   io.on('connection', (socket) => {
-    console.log(`Socket connected: ${socket.id}`);
+    logInDev(`Socket connected: ${socket.id}`);
 
     socket.on('kitchen:join', ({ outletId }) => {
       socket.join(`kitchen:${outletId}`);
-      console.log(`Socket ${socket.id} joined kitchen:${outletId}`);
+      logInDev(`Socket ${socket.id} joined kitchen:${outletId}`);
     });
 
     socket.on('pos:join', ({ outletId }) => {
       socket.join(`outlet:${outletId}`);
-      console.log(`Socket ${socket.id} joined outlet:${outletId}`);
+      logInDev(`Socket ${socket.id} joined outlet:${outletId}`);
     });
 
     socket.on('table:select', ({ tableId }) => {
       socket.join(`table:${tableId}`);
-      console.log(`Socket ${socket.id} selected table:${tableId}`);
+      logInDev(`Socket ${socket.id} selected table:${tableId}`);
     });
 
     socket.on('kot:markStatus', ({ kotId, status, outletId }) => {
@@ -54,19 +70,19 @@ app.prepare().then(() => {
     });
 
     socket.on('disconnect', () => {
-      console.log(`Socket disconnected: ${socket.id}`);
+      logInDev(`Socket disconnected: ${socket.id}`);
     });
   });
 
   // Make io accessible to API routes if needed (e.g., via global object)
-  (global as any).io = io;
+  (globalThis as typeof globalThis & { io?: Server }).io = io;
 
   server.once('error', (err) => {
     console.error(err);
     process.exit(1);
   });
 
-  server.listen(port, () => {
-    console.log(`> Ready on http://${hostname}:${port}`);
+  server.listen(port, hostname, () => {
+    console.log(`> Ready on http://${displayHost}:${port}`);
   });
 });

@@ -55,11 +55,11 @@ export function QuickSearch({ items }: QuickSearchProps) {
     ? [] 
     : items.filter(item => 
         item.name.toLowerCase().includes(query.toLowerCase()) ||
-        item.sku?.toLowerCase().includes(query.toLowerCase())
+        item.shortCode?.toLowerCase().includes(query.toLowerCase())
       ).slice(0, 5); // Limit to 5 results
 
   const handleSelect = (item: MenuItem) => {
-    addToCart({ ...item, quantity: 1 });
+    addToCart(item);
     setQuery("");
     setIsOpen(false);
     inputRef.current?.blur();
@@ -103,7 +103,7 @@ export function QuickSearch({ items }: QuickSearchProps) {
         <div className="absolute top-full left-0 right-0 mt-2 bg-background border border-border rounded-xl shadow-xl overflow-hidden z-50">
           {filteredItems.length > 0 ? (
             <ul className="py-2">
-              {filteredItems.map((item, index) => (
+              {filteredItems.map((item) => (
                 <li key={item.id}>
                   <button
                     onClick={() => handleSelect(item)}
@@ -111,9 +111,9 @@ export function QuickSearch({ items }: QuickSearchProps) {
                   >
                     <div>
                       <p className="font-semibold">{item.name}</p>
-                      {item.sku && <p className="text-xs text-muted-foreground uppercase">{item.sku}</p>}
+                      {item.shortCode && <p className="text-xs text-muted-foreground uppercase">{item.shortCode}</p>}
                     </div>
-                    <span className="font-bold text-primary">{formatCurrency(item.price)}</span>
+                    <span className="font-bold text-primary">{formatCurrency(item.basePrice)}</span>
                   </button>
                 </li>
               ))}

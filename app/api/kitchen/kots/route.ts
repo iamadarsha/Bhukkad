@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/db';
-import { kots, kotItems, orders, tables } from '@/db/schema';
-import { eq, inArray, and, ne } from 'drizzle-orm';
+import { kots, kotItems } from '@/db/schema';
+import { and, inArray, ne } from 'drizzle-orm';
 import { auth } from '@/lib/auth';
 
 export async function GET(req: Request) {
@@ -24,8 +24,10 @@ export async function GET(req: Request) {
       }
     });
 
+    const outletKots = activeKots.filter((kot) => kot.order?.outletId === session.user.outletId);
+
     // Fetch items for these KOTs
-    const kotIds = activeKots.map(k => k.id);
+    const kotIds = outletKots.map(k => k.id);
     let allItems: any[] = [];
     
     if (kotIds.length > 0) {
@@ -34,11 +36,18 @@ export async function GET(req: Request) {
       });
     }
 
-    const formattedKots = activeKots.map(kot => ({
+    const formattedKots = outletKots.map(kot => ({
       ...kot,
-      items: allItems.filter(item => item.kotId === kot.id),
+      items: allItems
+        .filter(item => item.kotId === kot.id)
+        .map(item => ({
+          ...item,
+          name: item.itemName,
+          notes: item.itemNote ?? null,
+        })),
       table: kot.order?.table,
       orderType: kot.order?.orderType,
+      orderNumber: kot.order?.orderNumber,
     }));
 
     return NextResponse.json(formattedKots);

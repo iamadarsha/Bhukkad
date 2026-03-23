@@ -51,7 +51,7 @@ export function KotCard({ kot, onStatusChange }: { kot: any, onStatusChange: (id
               
               {item.modifiers?.length > 0 && (
                 <p className="text-sm text-white/60 mb-1">
-                  {item.modifiers.map((m: any) => m.modifierName).join(', ')}
+                  {item.modifiers.map((m: any) => m.modifierName ?? m.name).join(', ')}
                 </p>
               )}
               

@@ -21,13 +21,13 @@ export function TableCard({ table, onClick, isSelected }: TableCardProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "available":
-        return "bg-[#F0FFF4] border-[#48BB78] text-[#2F855A]";
+        return "bg-success/10 border-success/30 text-success";
       case "occupied":
-        return "bg-[#FFF5E6] border-[#F6AD55] text-[#DD6B20]";
+        return "bg-warning/12 border-warning/35 text-warning";
       case "reserved":
-        return "bg-[#EBF8FF] border-[#63B3ED] text-[#2B6CB0]";
+        return "bg-info/10 border-info/30 text-info";
       case "dirty":
-        return "bg-[#FFF5F5] border-[#FC8181] text-[#C53030]";
+        return "bg-destructive/10 border-destructive/30 text-destructive";
       default:
         return "bg-muted border-border text-muted-foreground";
     }
@@ -73,7 +73,7 @@ export function TableCard({ table, onClick, isSelected }: TableCardProps) {
             <span className="text-lg font-bold leading-none">{table.name}</span>
             
             {isOccupied && (
-              <span className="absolute bottom-1 text-[10px] font-bold bg-white/80 px-1.5 rounded-sm backdrop-blur-sm">
+              <span className="absolute bottom-1 rounded-full border border-border/70 bg-card/90 px-2 py-0.5 text-[10px] font-bold text-text-primary shadow-sm backdrop-blur-sm">
                 {formatCurrency(mockOrderTotal)}
               </span>
             )}

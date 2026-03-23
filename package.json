@@ -1,10 +1,10 @@
 {
-  "name": "ai-studio-applet",
+  "name": "bhukkad",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "tsx server.ts",
-    "build": "next build && tsc server.ts --outDir dist",
+    "build": "next build && tsc -p tsconfig.server.json",
     "start": "node dist/server.js",
     "lint": "eslint .",
     "clean": "next clean",

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, type ReactNode } from "react";
 import Image from "next/image";
 import { Category, MenuItem } from "@/types";
 import { usePosStore } from "@/hooks/use-pos-store";
@@ -11,6 +11,7 @@ import { Search, Zap } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { itemEntry } from "@/lib/utils/motion";
 import { formatCurrency } from "@/lib/utils/currency";
+import { StatePanel } from "@/components/ui/state-panel";
 import Fuse from "fuse.js";
 
 interface ItemGridProps {
@@ -19,7 +20,7 @@ interface ItemGridProps {
   activeCategoryId: string;
 }
 
-export function ItemGrid({ categories, items, activeCategoryId }: ItemGridProps) {
+export function ItemGrid({ categories: _categories, items, activeCategoryId }: ItemGridProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [filter, setFilter] = useState<string>("all"); // all, veg, non_veg, bestseller
   const [selectedItemForModifiers, setSelectedItemForModifiers] = useState<MenuItem | null>(null);
@@ -42,6 +43,7 @@ export function ItemGrid({ categories, items, activeCategoryId }: ItemGridProps)
     if (filter === "veg") result = result.filter(i => i.foodType === "veg");
     if (filter === "non_veg") result = result.filter(i => i.foodType === "non_veg");
     if (filter === "bestseller") result = result.filter(i => i.isBestseller);
+    if (filter === "quick") result = result.filter(i => (i.prepTimeMinutes ?? Infinity) <= 15);
 
     return result;
   }, [items, searchQuery, activeCategoryId, filter, fuse]);
@@ -57,12 +59,12 @@ export function ItemGrid({ categories, items, activeCategoryId }: ItemGridProps)
   return (
     <div className="flex flex-col h-full">
       {/* Top Bar */}
-      <div className="p-4 bg-surface border-b border-border z-10 shadow-sm">
+      <div className="z-10 border-b border-border/70 bg-surface/95 p-4 shadow-sm">
         <div className="relative mb-3">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
           <Input 
             placeholder="Search items, codes, tags... (Press / to focus)" 
-            className="pl-10 bg-muted/50 border-transparent focus-visible:bg-surface h-12 text-lg rounded-xl"
+            className="h-12 rounded-[var(--radius-large)] border-border/60 bg-background pl-10 text-lg shadow-[var(--shadow-elevation-1)] focus-visible:bg-background"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -79,83 +81,84 @@ export function ItemGrid({ categories, items, activeCategoryId }: ItemGridProps)
 
       {/* Grid */}
       <ScrollArea className="flex-1 p-4">
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-4 pb-20">
-          <AnimatePresence mode="popLayout">
-            {filteredItems.map(item => {
-              const cartItem = cart.find(i => i.itemId === item.id);
-              
-              return (
-                <motion.div
-                  key={item.id}
-                  layout
-                  {...itemEntry}
-                  className="bg-surface rounded-2xl border border-border overflow-hidden flex flex-col hover:shadow-lg hover:-translate-y-1 transition-all duration-200 cursor-pointer group"
-                  onClick={() => !cartItem && handleItemClick(item)}
-                >
-                  <div className="relative h-32 bg-muted">
-                    {/* Placeholder for image */}
-                    {item.imageUrl ? (
-                      <div className="relative w-full h-full">
-                        <Image 
-                          src={item.imageUrl} 
-                          alt={item.name} 
-                          fill 
-                          className="object-cover" 
-                          referrerPolicy="no-referrer"
-                        />
-                      </div>
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-muted-foreground/30">
-                        <Zap className="w-8 h-8" />
-                      </div>
-                    )}
-                    
-                    {/* Badges */}
-                    <div className="absolute top-2 left-2 flex flex-col gap-1">
-                      <div className="bg-white p-1 rounded-sm shadow-sm">
-                        <div className={`w-3 h-3 rounded-full ${item.foodType === 'veg' ? 'bg-success' : item.foodType === 'non_veg' ? 'bg-error' : 'bg-warning'}`} />
-                      </div>
-                    </div>
-                    {item.isBestseller && (
-                      <div className="absolute top-2 right-2 bg-warning text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-sm">
-                        BESTSELLER
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="p-3 flex flex-col flex-1">
-                    <h3 className="font-bold text-sm leading-tight line-clamp-2 mb-1 group-hover:text-primary transition-colors">{item.name}</h3>
-                    <div className="mt-auto flex items-end justify-between">
-                      <span className="font-bold text-primary">{formatCurrency(item.basePrice)}</span>
+        {filteredItems.length === 0 ? (
+          <StatePanel
+            tone="empty"
+            eyebrow="Bhukkad Menu Search"
+            title="No dishes match this search yet"
+            description="Try a broader search, switch filters, or jump back to all categories to keep service moving."
+            className="min-h-[320px] justify-center"
+            primaryAction={{
+              label: "Clear Search",
+              onClick: () => {
+                setSearchQuery("");
+                setFilter("all");
+              },
+            }}
+          />
+        ) : (
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-4 pb-20">
+            <AnimatePresence mode="popLayout">
+              {filteredItems.map(item => {
+                const cartItem = cart.find(i => i.itemId === item.id);
+                
+                return (
+                  <motion.div
+                    key={item.id}
+                    layout
+                    {...itemEntry}
+                    className="group flex cursor-pointer flex-col overflow-hidden rounded-[var(--radius-xxl)] border border-border bg-card/95 shadow-[var(--shadow-elevation-1)] transition-all duration-200 hover:-translate-y-1 hover:border-primary/30 hover:shadow-[var(--shadow-elevation-2)]"
+                    onClick={() => !cartItem && handleItemClick(item)}
+                  >
+                    <div className="relative h-32 bg-muted">
+                      <ItemCardImage imageUrl={item.imageUrl} name={item.name} />
                       
-                      {cartItem ? (
-                        <div className="flex items-center bg-primary text-white rounded-full overflow-hidden shadow-sm" onClick={(e) => e.stopPropagation()}>
-                          <button 
-                            className="w-8 h-8 flex items-center justify-center hover:bg-primary-dark transition-colors"
-                            onClick={() => updateQuantity(cartItem.id, Math.max(0, cartItem.quantity - 1))}
-                          >
-                            -
-                          </button>
-                          <span className="w-6 text-center text-sm font-bold">{cartItem.quantity}</span>
-                          <button 
-                            className="w-8 h-8 flex items-center justify-center hover:bg-primary-dark transition-colors"
-                            onClick={() => updateQuantity(cartItem.id, cartItem.quantity + 1)}
-                          >
-                            +
-                          </button>
+                      <div className="absolute top-2 left-2 flex flex-col gap-1">
+                        <div className="rounded-md bg-card/95 p-1 shadow-sm">
+                          <div className={`h-3 w-3 rounded-full ${item.foodType === 'veg' ? 'bg-success' : item.foodType === 'non_veg' ? 'bg-error' : 'bg-warning'}`} />
                         </div>
-                      ) : (
-                        <button className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center hover:bg-primary hover:text-white transition-colors">
-                          <PlusIcon />
-                        </button>
+                      </div>
+                      {item.isBestseller && (
+                        <div className="absolute top-2 right-2 rounded-full bg-warning px-2 py-1 text-[10px] font-bold text-secondary-foreground shadow-sm">
+                          BESTSELLER
+                        </div>
                       )}
                     </div>
-                  </div>
-                </motion.div>
-              );
-            })}
-          </AnimatePresence>
-        </div>
+
+                    <div className="flex flex-1 flex-col p-3">
+                      <h3 className="mb-1 line-clamp-2 text-sm font-bold leading-tight transition-colors group-hover:text-primary">{item.name}</h3>
+                      <div className="mt-auto flex items-end justify-between">
+                        <span className="font-bold text-primary">{formatCurrency(item.basePrice)}</span>
+                        
+                        {cartItem ? (
+                          <div className="flex items-center overflow-hidden rounded-full bg-primary text-primary-foreground shadow-sm" onClick={(e) => e.stopPropagation()}>
+                            <button 
+                              className="flex h-8 w-8 items-center justify-center transition-colors hover:bg-primary-dark"
+                              onClick={() => updateQuantity(cartItem.id, Math.max(0, cartItem.quantity - 1))}
+                            >
+                              -
+                            </button>
+                            <span className="w-6 text-center text-sm font-bold">{cartItem.quantity}</span>
+                            <button 
+                              className="flex h-8 w-8 items-center justify-center transition-colors hover:bg-primary-dark"
+                              onClick={() => updateQuantity(cartItem.id, cartItem.quantity + 1)}
+                            >
+                              +
+                            </button>
+                          </div>
+                        ) : (
+                          <button className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary transition-colors hover:bg-primary hover:text-primary-foreground">
+                            <PlusIcon />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
+          </div>
+        )}
       </ScrollArea>
 
       <ModifierSheet 
@@ -168,17 +171,49 @@ export function ItemGrid({ categories, items, activeCategoryId }: ItemGridProps)
   );
 }
 
-function FilterChip({ label, active, onClick, icon }: any) {
+interface FilterChipProps {
+  label: string;
+  active: boolean;
+  onClick: () => void;
+  icon?: ReactNode;
+}
+
+function FilterChip({ label, active, onClick, icon }: FilterChipProps) {
   return (
     <button
       onClick={onClick}
-      className={`px-3 py-1.5 rounded-md text-xs font-semibold whitespace-nowrap transition-colors flex items-center border ${
-        active ? "bg-secondary text-white border-secondary" : "bg-surface text-text-secondary border-border hover:bg-muted"
+      className={`flex items-center whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
+        active ? "border-secondary bg-secondary text-secondary-foreground shadow-[var(--shadow-elevation-1)]" : "border-border bg-background text-text-secondary hover:bg-muted"
       }`}
     >
       {icon}
       {label}
     </button>
+  );
+}
+
+function ItemCardImage({ imageUrl, name }: { imageUrl?: string | null; name: string }) {
+  const [hasImageError, setHasImageError] = useState(false);
+
+  if (!imageUrl || hasImageError) {
+    return (
+      <div className="w-full h-full flex items-center justify-center text-muted-foreground/30">
+        <Zap className="w-8 h-8" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative w-full h-full">
+      <Image
+        src={imageUrl}
+        alt={name}
+        fill
+        className="object-cover"
+        referrerPolicy="no-referrer"
+        onError={() => setHasImageError(true)}
+      />
+    </div>
   );
 }
 

@@ -4,16 +4,26 @@ import { usePosStore } from "@/hooks/use-pos-store";
 import { formatCurrency } from "@/lib/utils/currency";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { Trash2, Edit3, User, Utensils, Send, Receipt, Loader2, CreditCard, Plus, Minus, Sparkles, X } from "lucide-react";
+import { Trash2, User, Utensils, Send, Receipt, Loader2, CreditCard, Plus, Minus, Sparkles, X } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useState } from "react";
-import { apiClient } from "@/lib/api-client";
+import { apiClient, getApiErrorMessage } from "@/lib/api-client";
 import { toast } from "sonner";
-import { PaymentModal } from "./payment-modal";
+import { PaymentModal, PaymentSubmission } from "./payment-modal";
 import { getMenuIntelligence } from "@/lib/ai";
 
 export function OrderCart() {
-  const { cart, selectedTableId, orderType, paxCount, discountAmount, updateQuantity, removeFromCart, clearCart } = usePosStore();
+  const {
+    cart,
+    selectedCustomer,
+    selectedTableId,
+    orderType,
+    paxCount,
+    discountAmount,
+    updateQuantity,
+    removeFromCart,
+    clearCart,
+  } = usePosStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [aiSuggestion, setAiSuggestion] = useState<string | null>(null);
@@ -35,29 +45,39 @@ export function OrderCart() {
       const suggestion = await getMenuIntelligence(prompt);
       setAiSuggestion(suggestion);
     } catch (error) {
-      toast.error("Failed to get AI suggestions");
+      toast.error(getApiErrorMessage(error, "Failed to get AI suggestions right now."));
     } finally {
       setIsAiLoading(false);
     }
+  };
+
+  const createOrder = async () => {
+    const response = await apiClient.post("/orders", {
+      tableId: selectedTableId,
+      customerId: selectedCustomer?.id ?? null,
+      orderType,
+      paxCount,
+      items: cart,
+      subtotal,
+      taxAmount: tax,
+      discountAmount,
+      totalAmount: total,
+    });
+
+    return response.data as { id: string };
   };
 
   const handleSendKOT = async () => {
     if (cart.length === 0) return;
     setIsSubmitting(true);
     try {
-      await apiClient.post("/orders", {
-        tableId: selectedTableId,
-        orderType,
-        paxCount,
-        items: cart,
-        subtotal,
-        taxAmount: tax,
-        totalAmount: total,
-      });
+      await createOrder();
       toast.success("KOT sent to kitchen");
       clearCart();
     } catch (error) {
-      toast.error("Failed to send KOT");
+      toast.error(
+        getApiErrorMessage(error, "Failed to send the kitchen order ticket.")
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -66,36 +86,58 @@ export function OrderCart() {
   const handleBill = async () => {
     if (cart.length === 0) return;
     setIsSubmitting(true);
+    let createdOrderId: string | null = null;
+
     try {
-      const res = await apiClient.post("/orders", {
-        tableId: selectedTableId,
-        orderType,
-        paxCount,
-        items: cart,
-        subtotal,
-        taxAmount: tax,
-        totalAmount: total,
-      });
-      
-      // Immediately mark as paid for demo purposes
-      await apiClient.post(`/orders/${res.data.id}/pay`, {
+      const order = await createOrder();
+      createdOrderId = order.id;
+
+      await apiClient.post(`/orders/${order.id}/pay`, {
         paymentMethod: 'cash',
-        amountPaid: total
+        amountPaid: total,
       });
 
       toast.success("Bill generated and paid");
       clearCart();
     } catch (error) {
-      toast.error("Failed to generate bill");
+      toast.error(
+        createdOrderId
+          ? "The order was created, but payment did not complete. You can settle it from active orders."
+          : getApiErrorMessage(error, "Failed to generate the bill.")
+      );
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const handleProcessPayment = async (payment: PaymentSubmission) => {
+    let createdOrderId: string | null = null;
+
+    try {
+      const order = await createOrder();
+      createdOrderId = order.id;
+
+      await apiClient.post(`/orders/${order.id}/pay`, {
+        paymentMethod: payment.paymentMethod,
+        amountPaid: payment.amountPaid,
+        reference: payment.reference,
+        transactionId: payment.transactionId,
+      });
+
+      return { orderId: order.id };
+    } catch (error) {
+      throw new Error(
+        createdOrderId
+          ? "The order was created, but payment did not complete. Please review it in active orders before retrying."
+          : getApiErrorMessage(error, "We couldn't complete the payment.")
+      );
+    }
+  };
+
   return (
-    <div className="flex flex-col h-full bg-surface">
+    <div className="flex h-full flex-col">
       {/* Header */}
-      <div className="p-4 border-b border-border bg-white">
+      <div className="border-b border-border/70 bg-surface/95 p-4">
         <div className="flex items-center justify-between mb-4">
           <div className="flex flex-col">
             <span className="text-xs font-bold text-text-muted uppercase tracking-widest">Current Order</span>
@@ -115,13 +157,15 @@ export function OrderCart() {
         </div>
         
         <div className="grid grid-cols-2 gap-2">
-          <div className="flex items-center gap-2 p-2 bg-[#F8FAFC] rounded-lg border border-border/50">
+          <div className="flex items-center gap-2 rounded-lg border border-border/50 bg-surface/80 p-2">
             <User className="w-4 h-4 text-text-muted" />
             <span className="text-xs font-bold">Guest ({paxCount})</span>
           </div>
-          <div className="flex items-center gap-2 p-2 bg-[#F8FAFC] rounded-lg border border-border/50">
+          <div className="flex items-center gap-2 rounded-lg border border-border/50 bg-surface/80 p-2">
             <Utensils className="w-4 h-4 text-text-muted" />
-            <span className="text-xs font-bold">Staff</span>
+            <span className="text-xs font-bold truncate">
+              {selectedCustomer ? selectedCustomer.name : "Walk-in Customer"}
+            </span>
           </div>
         </div>
       </div>
@@ -129,10 +173,14 @@ export function OrderCart() {
       {/* Cart Items */}
       <ScrollArea className="flex-1 px-4 py-2">
         {cart.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center text-muted-foreground opacity-30 pt-20">
-            <Receipt className="w-20 h-20 mb-4" />
-            <p className="font-bold text-lg uppercase tracking-widest">Empty Bill</p>
-            <p className="text-sm">Add items to start billing</p>
+          <div className="flex h-full flex-col items-center justify-center px-4 py-16 text-center">
+            <div className="flex h-20 w-20 items-center justify-center rounded-[var(--radius-xxl)] bg-primary/10 text-primary shadow-[var(--shadow-elevation-1)]">
+              <Receipt className="h-9 w-9" />
+            </div>
+            <p className="mt-5 text-lg font-black uppercase tracking-[0.24em] text-text-primary">Empty Bill</p>
+            <p className="mt-2 max-w-xs text-sm leading-6 text-text-secondary">
+              Add a few dishes to build the live bill, then send the KOT or settle payment from the same panel.
+            </p>
           </div>
         ) : (
           <div className="divide-y divide-border/50">
@@ -176,14 +224,17 @@ export function OrderCart() {
                   <div className="flex justify-between items-start mb-2">
                     <div className="flex-1 pr-4">
                       <div className="flex items-center gap-2">
-                        <div className={`w-2 h-2 rounded-full shrink-0 ${item.foodType === 'veg' ? 'bg-success' : 'bg-error'}`} />
+                        <div className="w-2 h-2 rounded-full shrink-0 bg-primary/40" />
                         <h4 className="font-bold text-sm leading-tight">{item.itemName}</h4>
                       </div>
                       {item.modifiers?.length > 0 && (
                         <div className="flex flex-wrap gap-1 mt-1 ml-4">
                           {item.modifiers.map(m => (
-                            <span key={m.modifierId} className="text-[10px] bg-muted px-1.5 py-0.5 rounded text-text-secondary">
-                              + {m.modifierName}
+                            <span
+                              key={m.modifierId ?? m.id}
+                              className="text-[10px] bg-muted px-1.5 py-0.5 rounded text-text-secondary"
+                            >
+                              + {m.modifierName ?? m.name}
                             </span>
                           ))}
                         </div>
@@ -228,7 +279,7 @@ export function OrderCart() {
       </ScrollArea>
 
       {/* Footer / Totals */}
-      <div className="p-6 bg-[#F8FAFC] border-t border-border">
+      <div className="border-t border-border bg-surface/90 p-6">
         <div className="space-y-2.5 mb-6">
           <div className="flex justify-between text-xs font-bold text-text-secondary">
             <span>SUBTOTAL</span>
@@ -296,6 +347,7 @@ export function OrderCart() {
         subtotal={subtotal}
         tax={tax}
         discount={discountAmount}
+        onProcessPayment={handleProcessPayment}
         onComplete={() => {
           setIsPaymentModalOpen(false);
           clearCart();

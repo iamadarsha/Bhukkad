@@ -3,28 +3,32 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { BrandMark } from "@/components/brand/brand-mark";
 import { 
   LayoutDashboard, 
   MonitorSmartphone, 
+  QrCode,
   ChefHat, 
   ClipboardList, 
   Utensils, 
   Package, 
   Users, 
   Settings,
-  CalendarDays
+  CalendarDays,
+  BarChart3
 } from "lucide-react";
 
 const navItems = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "POS", href: "/pos", icon: MonitorSmartphone },
+  { name: "Tablet Ordering", href: "/tablet-ordering", icon: QrCode },
   { name: "KOT", href: "/kot", icon: ChefHat },
   { name: "Orders", href: "/orders", icon: ClipboardList },
   { name: "Reservations", href: "/reservations", icon: CalendarDays },
   { name: "Menu", href: "/menu", icon: Utensils },
   { name: "Inventory", href: "/inventory", icon: Package },
   { name: "Customers", href: "/customers", icon: Users },
-  { name: "Reports", href: "/reports", icon: LayoutDashboard },
+  { name: "Reports", href: "/reports", icon: BarChart3 },
   { name: "Settings", href: "/settings", icon: Settings },
 ];
 
@@ -32,42 +36,44 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="w-20 lg:w-24 h-screen bg-[#1E293B] flex flex-col transition-all duration-300 z-30">
-      <div className="h-16 flex items-center justify-center border-b border-white/10">
-        <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white font-bold shrink-0 shadow-lg shadow-primary/20">
-          S
-        </div>
+    <aside className="surface-shell flex h-screen w-[92px] flex-col border-r border-border/70 px-3 pb-5 pt-8 transition-all duration-300 xl:w-[280px] xl:px-4 xl:pt-10">
+      <div className="flex min-h-[72px] items-start justify-center xl:min-h-[132px] xl:justify-start">
+        <BrandMark compact className="xl:hidden" />
+        <BrandMark withTagline className="hidden xl:flex" />
       </div>
 
-      <nav className="flex-1 py-6 flex flex-col gap-4 px-2 overflow-y-auto scrollbar-hide">
+      <nav className="scrollbar-hide mt-8 flex flex-1 flex-col gap-3 overflow-y-auto xl:mt-10">
         {navItems.map((item) => {
-          const isActive = pathname.startsWith(item.href);
+          const isActive =
+            pathname === item.href || pathname.startsWith(`${item.href}/`);
           const Icon = item.icon;
 
           return (
-            <Link key={item.name} href={item.href} className="relative group">
-              <div className={cn(
-                "relative flex flex-col items-center justify-center gap-1 py-3 rounded-xl transition-all duration-200",
-                isActive 
-                  ? "bg-primary text-white shadow-lg shadow-primary/20" 
-                  : "text-slate-400 hover:bg-white/5 hover:text-white"
-              )}>
-                <Icon className={cn("w-6 h-6 shrink-0 transition-transform group-hover:scale-110")} />
-                <span className="text-[10px] font-bold uppercase tracking-tighter">{item.name}</span>
-                
-                {item.name === "KOT" && !isActive && (
-                  <span className="absolute top-2 right-2 w-2 h-2 bg-error rounded-full" />
+            <Link key={item.name} href={item.href} className="group">
+              <div
+                className={cn(
+                  "relative flex items-center justify-center gap-3 rounded-[var(--radius-large)] px-3 py-3 transition-all duration-200 xl:justify-start xl:px-4",
+                  isActive
+                    ? "bg-primary text-primary-foreground shadow-[var(--shadow-brand)]"
+                    : "text-muted-foreground hover:bg-accent/70 hover:text-foreground"
                 )}
+              >
+                <Icon className="h-5 w-5 shrink-0 transition-transform group-hover:scale-105" />
+                <span className="hidden text-sm font-semibold xl:inline">{item.name}</span>
               </div>
             </Link>
           );
         })}
       </nav>
 
-      <div className="p-4 border-t border-white/10">
-        <div className="w-12 h-12 mx-auto rounded-xl bg-white/5 flex items-center justify-center cursor-pointer hover:bg-white/10 transition-colors">
-          <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-sm font-bold shrink-0">
+      <div className="mt-4 rounded-[var(--radius-large)] border border-border/60 bg-card/80 p-3 shadow-[var(--shadow-elevation-1)]">
+        <div className="flex items-center justify-center gap-3 xl:justify-start">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
             A
+          </div>
+          <div className="hidden xl:block">
+            <p className="text-sm font-semibold text-foreground">Admin Console</p>
+            <p className="text-xs font-medium text-muted-foreground">Floor + kitchen controls</p>
           </div>
         </div>
       </div>

@@ -1,60 +1,121 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { apiClient } from "@/lib/api-client";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  normalizeOutletSettings,
+  TABLET_LANGUAGE_LABELS,
+  TABLET_LANGUAGE_OPTIONS,
+} from "@/lib/tablet-ordering";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Save, Store, Receipt, Users, Bell } from "lucide-react";
+import {
+  Bell,
+  Languages,
+  Loader2,
+  MonitorSmartphone,
+  QrCode,
+  Receipt,
+  Save,
+  Store,
+  Users,
+} from "lucide-react";
 import { toast } from "sonner";
+import type { TabletLanguageCode } from "@/types";
+
+type SettingsForm = {
+  restaurantName: string;
+  phone: string;
+  address: string;
+  gstNumber: string;
+  fssaiNumber: string;
+  taxRate: number;
+  serviceCharge: number;
+  printReceiptAutomatically: boolean;
+  enableKDS: boolean;
+  enableOnlineOrders: boolean;
+  enableTabletOrdering: boolean;
+  enableQrOrdering: boolean;
+  defaultTabletLanguage: TabletLanguageCode;
+};
+
+const DEFAULT_SETTINGS: SettingsForm = {
+  restaurantName: "My Restaurant",
+  phone: "+91 98765 43210",
+  address: "123 Main St, City",
+  gstNumber: "27AAAAA0000A1Z5",
+  fssaiNumber: "10012022000001",
+  taxRate: 5,
+  serviceCharge: 0,
+  printReceiptAutomatically: true,
+  enableKDS: true,
+  enableOnlineOrders: false,
+  enableTabletOrdering: false,
+  enableQrOrdering: false,
+  defaultTabletLanguage: "en",
+};
+
+function parseNumericInput(value: string) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
 
 export default function SettingsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [settings, setSettings] = useState({
-    restaurantName: "My Restaurant",
-    phone: "+91 98765 43210",
-    address: "123 Main St, City",
-    gstNumber: "27AAAAA0000A1Z5",
-    fssaiNumber: "10012022000001",
-    taxRate: 5,
-    serviceCharge: 0,
-    printReceiptAutomatically: true,
-    enableKDS: true,
-    enableOnlineOrders: false,
-  });
+  const [settings, setSettings] = useState<SettingsForm>(DEFAULT_SETTINGS);
 
   useEffect(() => {
     async function loadSettings() {
       try {
         const res = await apiClient.get("/settings");
         const data = res.data;
+        const normalized = normalizeOutletSettings(data.settings);
         setSettings({
           restaurantName: data.name || "",
           phone: data.phone || "",
           address: data.address || "",
           gstNumber: data.gstin || "",
           fssaiNumber: data.fssaiNumber || "",
-          taxRate: data.settings?.taxRate || 5,
-          serviceCharge: data.settings?.serviceCharge || 0,
-          printReceiptAutomatically: data.settings?.printReceiptAutomatically ?? true,
-          enableKDS: data.settings?.enableKDS ?? true,
-          enableOnlineOrders: data.settings?.enableOnlineOrders ?? false,
+          taxRate: normalized.taxRate,
+          serviceCharge: normalized.serviceCharge,
+          printReceiptAutomatically: normalized.printReceiptAutomatically,
+          enableKDS: normalized.enableKDS,
+          enableOnlineOrders: normalized.enableOnlineOrders,
+          enableTabletOrdering: normalized.enableTabletOrdering,
+          enableQrOrdering: normalized.enableQrOrdering,
+          defaultTabletLanguage: normalized.defaultTabletLanguage,
         });
-      } catch (error) {
+      } catch {
         toast.error("Failed to load settings");
       } finally {
         setIsLoading(false);
       }
     }
-    loadSettings();
+
+    void loadSettings();
   }, []);
 
   const handleSave = async () => {
     setIsSaving(true);
+
     try {
       const payload = {
         name: settings.restaurantName,
@@ -68,200 +129,467 @@ export default function SettingsPage() {
           printReceiptAutomatically: settings.printReceiptAutomatically,
           enableKDS: settings.enableKDS,
           enableOnlineOrders: settings.enableOnlineOrders,
-        }
+          enableTabletOrdering: settings.enableTabletOrdering,
+          enableQrOrdering: settings.enableQrOrdering,
+          defaultTabletLanguage: settings.defaultTabletLanguage,
+        },
       };
+
       await apiClient.patch("/settings", payload);
       toast.success("Settings saved successfully");
-    } catch (error) {
+    } catch {
       toast.error("Failed to save settings");
     } finally {
       setIsSaving(false);
     }
   };
 
-  const handleChange = (key: string, value: any) => {
-    setSettings(prev => ({ ...prev, [key]: value }));
+  const handleChange = <K extends keyof SettingsForm>(key: K, value: SettingsForm[K]) => {
+    setSettings((prev) => ({ ...prev, [key]: value }));
   };
 
   if (isLoading) {
     return (
-      <div className="flex-1 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      <div className="flex min-h-full items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
+  const tabletSubsystemEnabled = settings.enableTabletOrdering || settings.enableQrOrdering;
+
   return (
-    <div className="p-6 max-w-5xl mx-auto space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
-          <p className="text-text-secondary mt-1">Manage your restaurant configuration.</p>
-        </div>
-        
-        <div className="flex items-center gap-3">
-          <Button onClick={handleSave} disabled={isSaving} className="gap-2">
-            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            Save Changes
-          </Button>
-        </div>
+    <div className="min-h-full bg-background p-6 md:p-8">
+      <div className="mb-8">
+        <Card className="overflow-hidden border-border/70 bg-gradient-to-br from-primary/14 via-card to-tertiary/12 shadow-[var(--shadow-elevation-2)]">
+          <CardContent className="flex flex-col gap-6 p-6 md:flex-row md:items-end md:justify-between md:p-8">
+            <div className="space-y-4">
+              <div className="inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-[11px] font-black uppercase tracking-[0.24em] text-primary">
+                Bhukkad Control Room
+              </div>
+              <div className="space-y-2">
+                <h1 className="brand-display text-4xl font-semibold tracking-tight text-foreground md:text-5xl">
+                  Outlet Settings
+                </h1>
+                <p className="max-w-2xl text-sm font-medium leading-relaxed text-muted-foreground md:text-base">
+                  Tune your restaurant identity, billing defaults, and service-floor features from
+                  a single Bhukkad v2 workspace.
+                </p>
+              </div>
+                <div className="flex flex-wrap gap-3 text-sm font-medium text-muted-foreground">
+                  <div className="rounded-full border border-border/70 bg-card/80 px-4 py-2">
+                    Live outlet:{" "}
+                    <span className="font-semibold text-foreground">
+                      {settings.restaurantName || "Unnamed restaurant"}
+                  </span>
+                </div>
+                <div className="rounded-full border border-border/70 bg-card/80 px-4 py-2">
+                  KDS:{" "}
+                    <span className="font-semibold text-foreground">
+                      {settings.enableKDS ? "Enabled" : "Disabled"}
+                    </span>
+                  </div>
+                  <div className="rounded-full border border-border/70 bg-card/80 px-4 py-2">
+                    Tablet ordering:{" "}
+                    <span className="font-semibold text-foreground">
+                      {tabletSubsystemEnabled ? "Enabled" : "Disabled"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            <Button onClick={handleSave} disabled={isSaving} className="min-w-44">
+              {isSaving ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Save className="mr-2 h-4 w-4" />
+              )}
+              Save Changes
+            </Button>
+          </CardContent>
+        </Card>
       </div>
 
       <Tabs defaultValue="general" className="w-full">
-        <TabsList className="mb-4">
-          <TabsTrigger value="general" className="gap-2"><Store className="w-4 h-4" /> General</TabsTrigger>
-          <TabsTrigger value="billing" className="gap-2"><Receipt className="w-4 h-4" /> Billing & Taxes</TabsTrigger>
-          <TabsTrigger value="users" className="gap-2"><Users className="w-4 h-4" /> Users & Roles</TabsTrigger>
-          <TabsTrigger value="notifications" className="gap-2"><Bell className="w-4 h-4" /> Notifications</TabsTrigger>
+        <TabsList className="mb-6 h-auto w-full flex-wrap justify-start gap-2 rounded-[var(--radius-large)] border border-border/70 bg-surface-container-high p-1.5">
+          <TabsTrigger
+            value="general"
+            className="gap-2 rounded-[var(--radius-medium)] px-4 py-2.5 font-semibold data-[state=active]:bg-card data-[state=active]:text-primary data-[state=active]:shadow-[var(--shadow-elevation-1)]"
+          >
+            <Store className="h-4 w-4" />
+            General
+          </TabsTrigger>
+          <TabsTrigger
+            value="billing"
+            className="gap-2 rounded-[var(--radius-medium)] px-4 py-2.5 font-semibold data-[state=active]:bg-card data-[state=active]:text-primary data-[state=active]:shadow-[var(--shadow-elevation-1)]"
+          >
+            <Receipt className="h-4 w-4" />
+            Billing &amp; Taxes
+          </TabsTrigger>
+          <TabsTrigger
+            value="tablet"
+            className="gap-2 rounded-[var(--radius-medium)] px-4 py-2.5 font-semibold data-[state=active]:bg-card data-[state=active]:text-primary data-[state=active]:shadow-[var(--shadow-elevation-1)]"
+          >
+            <MonitorSmartphone className="h-4 w-4" />
+            Tablet &amp; QR
+          </TabsTrigger>
+          <TabsTrigger
+            value="users"
+            className="gap-2 rounded-[var(--radius-medium)] px-4 py-2.5 font-semibold data-[state=active]:bg-card data-[state=active]:text-primary data-[state=active]:shadow-[var(--shadow-elevation-1)]"
+          >
+            <Users className="h-4 w-4" />
+            Users &amp; Roles
+          </TabsTrigger>
+          <TabsTrigger
+            value="notifications"
+            className="gap-2 rounded-[var(--radius-medium)] px-4 py-2.5 font-semibold data-[state=active]:bg-card data-[state=active]:text-primary data-[state=active]:shadow-[var(--shadow-elevation-1)]"
+          >
+            <Bell className="h-4 w-4" />
+            Notifications
+          </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="general" className="space-y-6">
-          <Card className="border-border shadow-sm">
+        <TabsContent value="general" className="mt-0 space-y-6">
+          <Card className="border-border/70 bg-card/95">
             <CardHeader>
-              <CardTitle>Restaurant Details</CardTitle>
-              <CardDescription>Basic information about your business.</CardDescription>
+              <CardTitle className="brand-display text-3xl font-semibold">
+                Restaurant Identity
+              </CardTitle>
+              <CardDescription className="text-sm font-medium">
+                Brand, contact, and compliance details used across bills and customer touchpoints.
+              </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="restaurantName">Restaurant Name</Label>
-                  <Input 
-                    id="restaurantName" 
-                    value={settings.restaurantName} 
-                    onChange={(e) => handleChange("restaurantName", e.target.value)} 
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Phone Number</Label>
-                  <Input 
-                    id="phone" 
-                    value={settings.phone} 
-                    onChange={(e) => handleChange("phone", e.target.value)} 
-                  />
-                </div>
-                <div className="space-y-2 md:col-span-2">
-                  <Label htmlFor="address">Address</Label>
-                  <Input 
-                    id="address" 
-                    value={settings.address} 
-                    onChange={(e) => handleChange("address", e.target.value)} 
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="gstNumber">GST Number</Label>
-                  <Input 
-                    id="gstNumber" 
-                    value={settings.gstNumber} 
-                    onChange={(e) => handleChange("gstNumber", e.target.value)} 
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="fssaiNumber">FSSAI Number</Label>
-                  <Input 
-                    id="fssaiNumber" 
-                    value={settings.fssaiNumber} 
-                    onChange={(e) => handleChange("fssaiNumber", e.target.value)} 
-                  />
-                </div>
-              </div>
+            <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <Field label="Restaurant name" htmlFor="restaurantName">
+                <Input
+                  id="restaurantName"
+                  value={settings.restaurantName}
+                  onChange={(e) => handleChange("restaurantName", e.target.value)}
+                />
+              </Field>
+              <Field label="Phone number" htmlFor="phone">
+                <Input
+                  id="phone"
+                  value={settings.phone}
+                  onChange={(e) => handleChange("phone", e.target.value)}
+                />
+              </Field>
+              <Field label="Address" htmlFor="address" className="md:col-span-2">
+                <Input
+                  id="address"
+                  value={settings.address}
+                  onChange={(e) => handleChange("address", e.target.value)}
+                />
+              </Field>
+              <Field label="GST number" htmlFor="gstNumber">
+                <Input
+                  id="gstNumber"
+                  value={settings.gstNumber}
+                  onChange={(e) => handleChange("gstNumber", e.target.value)}
+                />
+              </Field>
+              <Field label="FSSAI number" htmlFor="fssaiNumber">
+                <Input
+                  id="fssaiNumber"
+                  value={settings.fssaiNumber}
+                  onChange={(e) => handleChange("fssaiNumber", e.target.value)}
+                />
+              </Field>
             </CardContent>
           </Card>
 
-          <Card className="border-border shadow-sm">
+          <Card className="border-border/70 bg-card/95">
             <CardHeader>
-              <CardTitle>Features</CardTitle>
-              <CardDescription>Enable or disable core system features.</CardDescription>
+              <CardTitle className="brand-display text-3xl font-semibold">
+                Service Floor Features
+              </CardTitle>
+              <CardDescription className="text-sm font-medium">
+                Turn operational modes on or off without leaving the Bhukkad shell.
+              </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between p-4 border border-border rounded-lg">
-                <div className="space-y-0.5">
-                  <Label className="text-base font-medium">Kitchen Display System (KDS)</Label>
-                  <p className="text-sm text-text-secondary">Send orders directly to digital kitchen screens.</p>
-                </div>
-                <Switch 
-                  checked={settings.enableKDS} 
-                  onCheckedChange={(checked) => handleChange("enableKDS", checked)} 
-                />
-              </div>
-              <div className="flex items-center justify-between p-4 border border-border rounded-lg">
-                <div className="space-y-0.5">
-                  <Label className="text-base font-medium">Online Orders</Label>
-                  <p className="text-sm text-text-secondary">Accept orders from food delivery aggregators.</p>
-                </div>
-                <Switch 
-                  checked={settings.enableOnlineOrders} 
-                  onCheckedChange={(checked) => handleChange("enableOnlineOrders", checked)} 
-                />
-              </div>
+            <CardContent className="grid gap-4">
+              <FeatureToggle
+                title="Kitchen Display System (KDS)"
+                description="Send orders directly to digital kitchen screens for smoother ticket flow."
+                checked={settings.enableKDS}
+                onCheckedChange={(checked) => handleChange("enableKDS", checked)}
+              />
+              <FeatureToggle
+                title="Online Orders"
+                description="Accept aggregator or direct online orders without switching systems."
+                checked={settings.enableOnlineOrders}
+                onCheckedChange={(checked) => handleChange("enableOnlineOrders", checked)}
+              />
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="billing" className="space-y-6">
-          <Card className="border-border shadow-sm">
+        <TabsContent value="billing" className="mt-0 space-y-6">
+          <Card className="border-border/70 bg-card/95">
             <CardHeader>
-              <CardTitle>Taxes & Charges</CardTitle>
-              <CardDescription>Configure default tax rates and additional charges.</CardDescription>
+              <CardTitle className="brand-display text-3xl font-semibold">
+                Taxes &amp; Charges
+              </CardTitle>
+              <CardDescription className="text-sm font-medium">
+                Keep your default tax configuration consistent at the billing counter.
+              </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="taxRate">Default GST Rate (%)</Label>
-                  <Input 
-                    id="taxRate" 
-                    type="number" 
-                    value={settings.taxRate} 
-                    onChange={(e) => handleChange("taxRate", parseFloat(e.target.value))} 
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="serviceCharge">Service Charge (%)</Label>
-                  <Input 
-                    id="serviceCharge" 
-                    type="number" 
-                    value={settings.serviceCharge} 
-                    onChange={(e) => handleChange("serviceCharge", parseFloat(e.target.value))} 
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-border shadow-sm">
-            <CardHeader>
-              <CardTitle>Receipt Printing</CardTitle>
-              <CardDescription>Configure how receipts are handled.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between p-4 border border-border rounded-lg">
-                <div className="space-y-0.5">
-                  <Label className="text-base font-medium">Auto-print Receipts</Label>
-                  <p className="text-sm text-text-secondary">Automatically print receipt when payment is completed.</p>
-                </div>
-                <Switch 
-                  checked={settings.printReceiptAutomatically} 
-                  onCheckedChange={(checked) => handleChange("printReceiptAutomatically", checked)} 
+            <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <Field label="Default GST rate (%)" htmlFor="taxRate">
+                <Input
+                  id="taxRate"
+                  type="number"
+                  value={settings.taxRate}
+                  onChange={(e) => handleChange("taxRate", parseNumericInput(e.target.value))}
                 />
-              </div>
+              </Field>
+              <Field label="Service charge (%)" htmlFor="serviceCharge">
+                <Input
+                  id="serviceCharge"
+                  type="number"
+                  value={settings.serviceCharge}
+                  onChange={(e) =>
+                    handleChange("serviceCharge", parseNumericInput(e.target.value))
+                  }
+                />
+              </Field>
+            </CardContent>
+          </Card>
+
+          <Card className="border-border/70 bg-card/95">
+            <CardHeader>
+              <CardTitle className="brand-display text-3xl font-semibold">
+                Billing Experience
+              </CardTitle>
+              <CardDescription className="text-sm font-medium">
+                Fine-tune what happens the moment a bill is closed.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <FeatureToggle
+                title="Auto-print Receipts"
+                description="Automatically print a guest receipt the moment payment is completed."
+                checked={settings.printReceiptAutomatically}
+                onCheckedChange={(checked) =>
+                  handleChange("printReceiptAutomatically", checked)
+                }
+              />
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="users">
-          <Card className="border-border shadow-sm p-6 text-center text-text-muted">
-            <h3 className="text-lg font-medium text-text-primary mb-2">Users & Roles Management</h3>
-            <p>Manage staff accounts, PINs, and permissions.</p>
-            <Button className="mt-4" variant="outline">Manage Users</Button>
+        <TabsContent value="tablet" className="mt-0 space-y-6">
+          <Card className="border-border/70 bg-card/95">
+            <CardHeader>
+              <CardTitle className="brand-display text-3xl font-semibold">
+                Guest Ordering Controls
+              </CardTitle>
+              <CardDescription className="text-sm font-medium">
+                Promote tablet and QR ordering to a stable first-class subsystem without
+                fragmenting your order pipeline.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-4">
+              <FeatureToggle
+                title="Tablet Ordering"
+                description="Enable the dedicated public tablet ordering experience for dine-in tables."
+                checked={settings.enableTabletOrdering}
+                onCheckedChange={(checked) => handleChange("enableTabletOrdering", checked)}
+              />
+              <FeatureToggle
+                title="QR Ordering"
+                description="Allow the same guest ordering flow to power printed QR links at the table."
+                checked={settings.enableQrOrdering}
+                onCheckedChange={(checked) => handleChange("enableQrOrdering", checked)}
+              />
+            </CardContent>
+          </Card>
+
+          <Card className="border-border/70 bg-card/95">
+            <CardHeader>
+              <CardTitle className="brand-display text-3xl font-semibold">
+                Guest Experience Defaults
+              </CardTitle>
+              <CardDescription className="text-sm font-medium">
+                Choose the default language guests see when the tablet or QR menu opens.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <Field label="Default guest language" htmlFor="defaultTabletLanguage">
+                <Select
+                  value={settings.defaultTabletLanguage}
+                  onValueChange={(value) =>
+                    handleChange("defaultTabletLanguage", value as TabletLanguageCode)
+                  }
+                >
+                  <SelectTrigger id="defaultTabletLanguage">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {TABLET_LANGUAGE_OPTIONS.map((option) => (
+                      <SelectItem key={option.code} value={option.code}>
+                        {option.label} · {option.nativeLabel}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </Field>
+              <div className="rounded-[var(--radius-large)] border border-border/70 bg-surface-container-high p-4">
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5 rounded-full bg-primary/10 p-2 text-primary">
+                    <Languages className="h-4 w-4" />
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm font-semibold text-foreground">Current guest default</p>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      {TABLET_LANGUAGE_LABELS[settings.defaultTabletLanguage]}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-border/70 bg-card/95">
+            <CardContent className="grid gap-4 p-5 md:grid-cols-3">
+              <StatusCard
+                title="Tablet ordering"
+                value={settings.enableTabletOrdering ? "On" : "Off"}
+                description="Dedicated guest-facing tablet shell"
+                icon={<MonitorSmartphone className="h-4 w-4" />}
+              />
+              <StatusCard
+                title="QR ordering"
+                value={settings.enableQrOrdering ? "On" : "Off"}
+                description="Printed QR codes use the same public subsystem"
+                icon={<QrCode className="h-4 w-4" />}
+              />
+              <StatusCard
+                title="Default language"
+                value={TABLET_LANGUAGE_LABELS[settings.defaultTabletLanguage]}
+                description="Applies when guests first open the menu"
+                icon={<Languages className="h-4 w-4" />}
+              />
+            </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="notifications">
-          <Card className="border-border shadow-sm p-6 text-center text-text-muted">
-            <h3 className="text-lg font-medium text-text-primary mb-2">Notification Settings</h3>
-            <p>Configure sound and visual alerts for new orders and updates.</p>
-          </Card>
+        <TabsContent value="users" className="mt-0">
+          <PlaceholderPanel
+            title="Users & Roles Management"
+            description="Staff accounts, PINs, and permission controls are ready for the same Bhukkad v2 treatment next."
+            actionLabel="Manage Users"
+          />
+        </TabsContent>
+
+        <TabsContent value="notifications" className="mt-0">
+          <PlaceholderPanel
+            title="Notification Settings"
+            description="Configure sound and visual alerts for new orders, kitchen updates, and service-floor exceptions."
+          />
         </TabsContent>
       </Tabs>
+    </div>
+  );
+}
+
+function Field({
+  label,
+  htmlFor,
+  className,
+  children,
+}: {
+  label: string;
+  htmlFor: string;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div
+      className={`rounded-[var(--radius-large)] border border-border/70 bg-surface-container-high p-4 ${className ?? ""}`}
+    >
+      <Label
+        htmlFor={htmlFor}
+        className="text-[11px] font-black uppercase tracking-[0.18em] text-muted-foreground"
+      >
+        {label}
+      </Label>
+      <div className="mt-3">{children}</div>
+    </div>
+  );
+}
+
+function FeatureToggle({
+  title,
+  description,
+  checked,
+  onCheckedChange,
+}: {
+  title: string;
+  description: string;
+  checked: boolean;
+  onCheckedChange: (checked: boolean) => void;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-4 rounded-[var(--radius-large)] border border-border/70 bg-surface-container-high p-4">
+      <div className="space-y-1">
+        <Label className="text-base font-semibold text-foreground">{title}</Label>
+        <p className="text-sm font-medium text-muted-foreground">{description}</p>
+      </div>
+      <Switch checked={checked} onCheckedChange={onCheckedChange} />
+    </div>
+  );
+}
+
+function PlaceholderPanel({
+  title,
+  description,
+  actionLabel,
+}: {
+  title: string;
+  description: string;
+  actionLabel?: string;
+}) {
+  return (
+    <Card className="border-border/70 bg-card/95">
+      <CardContent className="space-y-5 p-8 text-center">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-[var(--radius-medium)] bg-primary/10 text-primary">
+          <Store className="h-6 w-6" />
+        </div>
+        <div className="space-y-2">
+          <h3 className="brand-display text-3xl font-semibold text-foreground">{title}</h3>
+          <p className="mx-auto max-w-xl text-sm font-medium leading-relaxed text-muted-foreground">
+            {description}
+          </p>
+        </div>
+        {actionLabel ? <Button variant="outline">{actionLabel}</Button> : null}
+      </CardContent>
+    </Card>
+  );
+}
+
+function StatusCard({
+  title,
+  value,
+  description,
+  icon,
+}: {
+  title: string;
+  value: string;
+  description: string;
+  icon: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-[var(--radius-large)] border border-border/70 bg-surface-container-high p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div className="space-y-1">
+          <p className="text-sm font-semibold text-foreground">{title}</p>
+          <p className="brand-display text-3xl font-semibold text-foreground">{value}</p>
+          <p className="text-sm font-medium leading-relaxed text-muted-foreground">
+            {description}
+          </p>
+        </div>
+        <div className="rounded-full bg-primary/10 p-2 text-primary">{icon}</div>
+      </div>
     </div>
   );
 }

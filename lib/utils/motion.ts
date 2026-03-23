@@ -1,3 +1,15 @@
+const itemSpringTransition = {
+  type: "spring" as const,
+  stiffness: 400,
+  damping: 30,
+};
+
+const modalSpringTransition = {
+  type: "spring" as const,
+  stiffness: 350,
+  damping: 25,
+};
+
 export const pageTransition = {
   initial: { opacity: 0, y: 8 },
   animate: { opacity: 1, y: 0 },
@@ -8,13 +20,13 @@ export const pageTransition = {
 export const itemEntry = {
   initial: { opacity: 0, scale: 0.96 },
   animate: { opacity: 1, scale: 1 },
-  transition: { type: "spring", stiffness: 400, damping: 30 }
+  transition: itemSpringTransition,
 };
 
 export const modalEntry = {
   initial: { opacity: 0, scale: 0.96 },
   animate: { opacity: 1, scale: 1 },
-  transition: { type: "spring", stiffness: 350, damping: 25 }
+  transition: modalSpringTransition,
 };
 
 export const staggerContainer = {

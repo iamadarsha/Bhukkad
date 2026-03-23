@@ -1,204 +1,367 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { 
-  TrendingUp, 
-  Users, 
-  ShoppingBag, 
-  DollarSign, 
-  ArrowUpRight, 
+import { useCallback, useEffect, useState } from "react";
+import {
   ArrowDownRight,
-  Clock,
-  Utensils,
-  Calendar
+  ArrowUpRight,
+  Calendar,
+  DollarSign,
+  Loader2,
+  RefreshCw,
+  ShoppingBag,
+  Users,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer,
-  LineChart,
-  Line,
+import {
+  Area,
   AreaChart,
-  Area
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
 } from "recharts";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { apiClient } from "@/lib/api-client";
+import type { DashboardOverview } from "@/lib/analytics";
 import { formatCurrency } from "@/lib/utils/currency";
 
-const data = [
-  { name: "10 AM", sales: 4000 },
-  { name: "12 PM", sales: 7000 },
-  { name: "2 PM", sales: 5000 },
-  { name: "4 PM", sales: 3000 },
-  { name: "6 PM", sales: 9000 },
-  { name: "8 PM", sales: 12000 },
-  { name: "10 PM", sales: 8000 },
-];
+function formatServiceDate(value: string) {
+  return new Date(`${value}T00:00:00`).toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
 
-const topItems = [
-  { name: "Paneer Tikka", orders: 145, revenue: 36250 },
-  { name: "Butter Chicken", orders: 128, revenue: 51200 },
-  { name: "Dal Makhani", orders: 98, revenue: 24500 },
-  { name: "Garlic Naan", orders: 342, revenue: 17100 },
-  { name: "Veg Biryani", orders: 86, revenue: 21500 },
-];
+function formatChange(changePct: number) {
+  const prefix = changePct > 0 ? "+" : "";
+  return `${prefix}${changePct.toFixed(1)}%`;
+}
+
+function formatChartCurrency(value: unknown) {
+  const rawValue = Array.isArray(value) ? value[0] : value;
+  const numericValue = Number(rawValue ?? 0);
+
+  return formatCurrency(Number.isFinite(numericValue) ? numericValue : 0);
+}
+
+function getRankBadgeClasses(index: number) {
+  if (index === 0) return "bg-primary text-primary-foreground";
+  if (index === 1) return "bg-secondary text-secondary-foreground";
+  if (index === 2) return "bg-tertiary text-tertiary-foreground";
+  return "bg-accent text-accent-foreground";
+}
+
+type StatCardProps = {
+  title: string;
+  value: string;
+  change: string;
+  isUp: boolean;
+  icon: React.ReactNode;
+  iconClassName: string;
+  changeClassName: string;
+};
 
 export default function DashboardPage() {
+  const [overview, setOverview] = useState<DashboardOverview | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  useEffect(() => {
-    setTimeout(() => setIsLoading(false), 1000);
+  const loadOverview = useCallback(async (showToast = false) => {
+    try {
+      const response = await apiClient.get<DashboardOverview>("/dashboard/overview");
+      setOverview(response.data);
+      if (showToast) {
+        toast.success("Dashboard refreshed");
+      }
+    } catch {
+      toast.error("Failed to load dashboard data");
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
   }, []);
 
+  useEffect(() => {
+    void loadOverview();
+  }, [loadOverview]);
+
+  if (isLoading && !overview) {
+    return (
+      <div className="flex min-h-full items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!overview) {
+    return (
+      <div className="flex min-h-full items-center justify-center bg-background p-8">
+        <Card className="max-w-md border-border/70 bg-card/90">
+          <CardContent className="space-y-4 p-8 text-center">
+            <h2 className="brand-display text-2xl font-semibold text-foreground">
+              Dashboard unavailable
+            </h2>
+            <p className="text-sm font-medium text-muted-foreground">
+              We couldn&apos;t load the live outlet summary just now.
+            </p>
+            <Button
+              onClick={() => {
+                setIsLoading(true);
+                void loadOverview();
+              }}
+            >
+              Try again
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  const peakRevenue = Math.max(...overview.topItems.map((item) => item.revenue), 0);
+  const stats = [
+    {
+      title: "Today's Sales",
+      value: formatCurrency(overview.stats.sales.value),
+      change: formatChange(overview.stats.sales.changePct),
+      isUp: overview.stats.sales.changePct >= 0,
+      icon: <DollarSign className="h-5 w-5" />,
+      iconClassName: "bg-primary text-primary-foreground",
+      changeClassName:
+        overview.stats.sales.changePct >= 0
+          ? "bg-tertiary/15 text-tertiary"
+          : "bg-destructive/12 text-destructive",
+    },
+    {
+      title: "Total Orders",
+      value: overview.stats.orders.value.toString(),
+      change: formatChange(overview.stats.orders.changePct),
+      isUp: overview.stats.orders.changePct >= 0,
+      icon: <ShoppingBag className="h-5 w-5" />,
+      iconClassName: "bg-secondary text-secondary-foreground",
+      changeClassName:
+        overview.stats.orders.changePct >= 0
+          ? "bg-tertiary/15 text-tertiary"
+          : "bg-destructive/12 text-destructive",
+    },
+    {
+      title: "Avg. Order Value",
+      value: formatCurrency(overview.stats.averageOrderValue.value),
+      change: formatChange(overview.stats.averageOrderValue.changePct),
+      isUp: overview.stats.averageOrderValue.changePct >= 0,
+      icon: <DollarSign className="h-5 w-5" />,
+      iconClassName: "bg-tertiary text-tertiary-foreground",
+      changeClassName:
+        overview.stats.averageOrderValue.changePct >= 0
+          ? "bg-tertiary/15 text-tertiary"
+          : "bg-destructive/12 text-destructive",
+    },
+    {
+      title: "New Customers",
+      value: overview.stats.newCustomers.value.toString(),
+      change: formatChange(overview.stats.newCustomers.changePct),
+      isUp: overview.stats.newCustomers.changePct >= 0,
+      icon: <Users className="h-5 w-5" />,
+      iconClassName: "bg-accent text-accent-foreground",
+      changeClassName:
+        overview.stats.newCustomers.changePct >= 0
+          ? "bg-tertiary/15 text-tertiary"
+          : "bg-destructive/12 text-destructive",
+    },
+  ];
+
   return (
-    <div className="flex-1 p-8 bg-[#F4F7FA] overflow-y-auto">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-black tracking-tight text-slate-900">Outlet Dashboard</h1>
-          <p className="text-slate-500 font-medium">Welcome back! Here&apos;s what&apos;s happening today.</p>
-        </div>
-        <div className="flex gap-3">
-          <Button variant="outline" className="bg-white font-bold">
-            <Calendar className="w-4 h-4 mr-2" />
-            Today
-          </Button>
-          <Button className="font-bold shadow-lg shadow-primary/20">
-            Download Report
-          </Button>
-        </div>
-      </div>
-
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <StatCard 
-          title="Today's Sales" 
-          value={formatCurrency(48250)} 
-          change="+12.5%" 
-          isUp={true} 
-          icon={<DollarSign className="w-5 h-5" />} 
-          color="bg-blue-500"
-        />
-        <StatCard 
-          title="Total Orders" 
-          value="156" 
-          change="+8.2%" 
-          isUp={true} 
-          icon={<ShoppingBag className="w-5 h-5" />} 
-          color="bg-orange-500"
-        />
-        <StatCard 
-          title="Avg. Order Value" 
-          value={formatCurrency(309)} 
-          change="-2.4%" 
-          isUp={false} 
-          icon={<TrendingUp className="w-5 h-5" />} 
-          color="bg-emerald-500"
-        />
-        <StatCard 
-          title="New Customers" 
-          value="42" 
-          change="+18.7%" 
-          isUp={true} 
-          icon={<Users className="w-5 h-5" />} 
-          color="bg-violet-500"
-        />
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Sales Chart */}
-        <Card className="lg:col-span-2 border-none shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-lg font-bold">Sales Overview</CardTitle>
-            <div className="flex gap-2">
-              <div className="flex items-center gap-1.5">
-                <div className="w-3 h-3 rounded-full bg-primary" />
-                <span className="text-xs font-bold text-slate-500">Today</span>
+    <div className="min-h-full bg-background p-6 md:p-8">
+      <div className="mb-8">
+        <Card className="overflow-hidden border-border/70 bg-gradient-to-br from-primary/14 via-card to-tertiary/10 shadow-[var(--shadow-elevation-2)]">
+          <CardContent className="flex flex-col gap-6 p-6 md:flex-row md:items-end md:justify-between md:p-8">
+            <div className="space-y-4">
+              <div className="inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-[11px] font-black uppercase tracking-[0.24em] text-primary">
+                Bhukkad Service Pulse
               </div>
-              <div className="flex items-center gap-1.5">
-                <div className="w-3 h-3 rounded-full bg-slate-200" />
-                <span className="text-xs font-bold text-slate-500">Yesterday</span>
+              <div className="space-y-2">
+                <h1 className="brand-display text-4xl font-semibold tracking-tight text-foreground md:text-5xl">
+                  Outlet Dashboard
+                </h1>
+                <p className="max-w-2xl text-sm font-medium leading-relaxed text-muted-foreground md:text-base">
+                  Live restaurant performance for {formatServiceDate(overview.serviceDate)} across billing, order flow, and guest acquisition.
+                </p>
               </div>
             </div>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[350px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={data}>
-                  <defs>
-                    <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="var(--primary)" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
-                  <XAxis 
-                    dataKey="name" 
-                    axisLine={false} 
-                    tickLine={false} 
-                    tick={{ fontSize: 12, fontWeight: 600, fill: '#64748B' }}
-                    dy={10}
-                  />
-                  <YAxis 
-                    axisLine={false} 
-                    tickLine={false} 
-                    tick={{ fontSize: 12, fontWeight: 600, fill: '#64748B' }}
-                    tickFormatter={(value) => `₹${value/1000}k`}
-                  />
-                  <Tooltip 
-                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
-                    itemStyle={{ fontWeight: 'bold' }}
-                  />
-                  <Area 
-                    type="monotone" 
-                    dataKey="sales" 
-                    stroke="var(--primary)" 
-                    strokeWidth={4}
-                    fillOpacity={1} 
-                    fill="url(#colorSales)" 
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
+            <div className="flex flex-wrap gap-3">
+              <Button variant="outline" className="border-border/70 bg-card/80">
+                <Calendar className="mr-2 h-4 w-4" />
+                {formatServiceDate(overview.serviceDate)}
+              </Button>
+              <Button
+                onClick={() => {
+                  setIsRefreshing(true);
+                  void loadOverview(true);
+                }}
+                disabled={isRefreshing}
+              >
+                {isRefreshing ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                )}
+                Refresh Snapshot
+              </Button>
             </div>
           </CardContent>
         </Card>
+      </div>
 
-        {/* Top Items */}
-        <Card className="border-none shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-lg font-bold">Top Selling Items</CardTitle>
+      <div className="mb-8 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
+        {stats.map((stat) => (
+          <StatCard key={stat.title} {...stat} />
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 gap-8 xl:grid-cols-[minmax(0,1.8fr)_minmax(320px,1fr)]">
+        <Card className="border-border/70 bg-card/95">
+          <CardHeader className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+            <div>
+              <CardTitle className="brand-display text-3xl font-semibold">
+                Sales Rhythm
+              </CardTitle>
+              <CardDescription className="text-sm font-medium">
+                Hour-by-hour revenue flow for the current service day.
+              </CardDescription>
+            </div>
+            <div className="text-[11px] font-black uppercase tracking-[0.24em] text-muted-foreground">
+              Hourly sales
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="space-y-6">
-              {topItems.map((item, idx) => (
-                <div key={idx} className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-lg">
-                      {idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : '🍲'}
+            {overview.salesByHour.length === 0 ? (
+              <div className="flex h-[350px] w-full flex-col items-center justify-center text-center text-muted-foreground">
+                <p className="brand-display text-2xl font-semibold text-foreground">
+                  No hourly sales yet
+                </p>
+                <p className="mt-2 text-sm font-medium">
+                  Sales trend will populate once live orders are billed.
+                </p>
+              </div>
+            ) : (
+              <div className="h-[350px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={overview.salesByHour}>
+                    <defs>
+                      <linearGradient id="bhukkadSales" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.38} />
+                        <stop offset="95%" stopColor="var(--primary)" stopOpacity={0.03} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="4 6" vertical={false} stroke="var(--border)" />
+                    <XAxis
+                      dataKey="name"
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fontSize: 12, fontWeight: 600, fill: "var(--muted-foreground)" }}
+                      dy={10}
+                    />
+                    <YAxis
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fontSize: 12, fontWeight: 600, fill: "var(--muted-foreground)" }}
+                      tickFormatter={(value) => `₹${Math.round(value / 1000)}k`}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        borderRadius: "22px",
+                        border: "1px solid var(--border)",
+                        background: "var(--card)",
+                        boxShadow: "var(--shadow-elevation-2)",
+                      }}
+                      formatter={(value) => formatChartCurrency(value)}
+                      itemStyle={{ color: "var(--foreground)", fontWeight: 700 }}
+                      labelStyle={{ color: "var(--muted-foreground)", fontWeight: 700 }}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="sales"
+                      stroke="var(--primary)"
+                      strokeWidth={3}
+                      fill="url(#bhukkadSales)"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="border-border/70 bg-card/95">
+          <CardHeader>
+            <CardTitle className="brand-display text-3xl font-semibold">
+              Top Selling Items
+            </CardTitle>
+            <CardDescription className="text-sm font-medium">
+              Best performing dishes by billed revenue and quantity sold.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {overview.topItems.length === 0 ? (
+              <div className="py-12 text-center text-muted-foreground">
+                <p className="brand-display text-2xl font-semibold text-foreground">
+                  No item sales yet
+                </p>
+                <p className="mt-2 text-sm font-medium">
+                  Top items will appear once live orders come in.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {overview.topItems.map((item, index) => (
+                  <div
+                    key={item.name}
+                    className="rounded-[var(--radius-large)] border border-border/60 bg-surface-container-high p-4"
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`flex h-12 w-12 items-center justify-center rounded-[var(--radius-medium)] text-sm font-black shadow-[var(--shadow-elevation-1)] ${getRankBadgeClasses(index)}`}
+                        >
+                          #{index + 1}
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-foreground">{item.name}</p>
+                          <p className="mt-1 text-xs font-medium text-muted-foreground">
+                            {item.orders} qty sold
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-semibold text-foreground">
+                          {formatCurrency(item.revenue)}
+                        </p>
+                        <p className="mt-1 text-[11px] font-black uppercase tracking-[0.18em] text-muted-foreground">
+                          Revenue
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-bold text-sm text-slate-900">{item.name}</p>
-                      <p className="text-xs font-bold text-slate-500">{item.orders} orders</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-bold text-sm text-slate-900">{formatCurrency(item.revenue)}</p>
-                    <div className="w-24 h-1.5 bg-slate-100 rounded-full mt-1 overflow-hidden">
-                      <div 
-                        className="h-full bg-primary rounded-full" 
-                        style={{ width: `${(item.revenue / 51200) * 100}%` }}
+                    <div className="mt-4 h-2 rounded-full bg-muted">
+                      <div
+                        className="h-full rounded-full bg-gradient-to-r from-primary to-tertiary"
+                        style={{
+                          width: peakRevenue > 0 ? `${(item.revenue / peakRevenue) * 100}%` : "0%",
+                        }}
                       />
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-            <Button variant="ghost" className="w-full mt-6 font-bold text-primary hover:text-primary-dark hover:bg-primary/5">
-              View All Items
-            </Button>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -206,22 +369,38 @@ export default function DashboardPage() {
   );
 }
 
-function StatCard({ title, value, change, isUp, icon, color }: any) {
+function StatCard({
+  title,
+  value,
+  change,
+  isUp,
+  icon,
+  iconClassName,
+  changeClassName,
+}: StatCardProps) {
   return (
-    <Card className="border-none shadow-sm overflow-hidden group hover:shadow-md transition-shadow">
+    <Card className="group overflow-hidden border-border/70 bg-card/95 transition-transform duration-200 hover:-translate-y-0.5 hover:shadow-[var(--shadow-elevation-2)]">
       <CardContent className="p-6">
-        <div className="flex items-center justify-between mb-4">
-          <div className={`w-12 h-12 rounded-2xl ${color} flex items-center justify-center text-white shadow-lg shadow-${color.split('-')[1]}-500/20 group-hover:scale-110 transition-transform`}>
+        <div className="mb-5 flex items-center justify-between">
+          <div
+            className={`flex h-12 w-12 items-center justify-center rounded-[var(--radius-medium)] shadow-[var(--shadow-elevation-1)] ${iconClassName}`}
+          >
             {icon}
           </div>
-          <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-black ${isUp ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
-            {isUp ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
+          <div
+            className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-black tracking-wide ${changeClassName}`}
+          >
+            {isUp ? <ArrowUpRight className="h-3.5 w-3.5" /> : <ArrowDownRight className="h-3.5 w-3.5" />}
             {change}
           </div>
         </div>
         <div>
-          <p className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-1">{title}</p>
-          <h3 className="text-2xl font-black text-slate-900">{value}</h3>
+          <p className="text-[11px] font-black uppercase tracking-[0.24em] text-muted-foreground">
+            {title}
+          </p>
+          <h3 className="mt-2 text-3xl font-semibold tracking-tight text-foreground">
+            {value}
+          </h3>
         </div>
       </CardContent>
     </Card>

@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Sparkles, Send, X, Bot, User, Loader2, MessageSquare } from "lucide-react";
+import { Sparkles, Send, X, Bot, User, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { getChatResponse } from "@/lib/ai";
+import { AI_MODE_LABEL, getChatResponse } from "@/lib/ai";
 import { cn } from "@/lib/utils";
 
 interface Message {
@@ -71,20 +71,20 @@ export function AIChatbot() {
             className="fixed bottom-6 right-6 w-[400px] h-[600px] z-50 flex flex-col"
           >
             <Card className="flex-1 flex flex-col shadow-2xl border-primary/20 overflow-hidden">
-              <CardHeader className="bg-primary text-white p-4 flex flex-row items-center justify-between shrink-0">
+              <CardHeader className="bg-primary text-primary-foreground p-4 flex flex-row items-center justify-between shrink-0">
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-foreground/12">
                     <Sparkles className="w-5 h-5" />
                   </div>
                   <div>
                     <CardTitle className="text-sm font-bold">SpiceOS AI Assistant</CardTitle>
-                    <p className="text-[10px] opacity-80">Powered by Gemini 3.1 Pro</p>
+                    <p className="text-[10px] text-primary-foreground/80">Powered by {AI_MODE_LABEL}</p>
                   </div>
                 </div>
                 <Button 
                   variant="ghost" 
                   size="icon" 
-                  className="text-white hover:bg-white/10 h-8 w-8"
+                  className="h-8 w-8 text-primary-foreground hover:bg-primary-foreground/10"
                   onClick={() => setIsOpen(false)}
                 >
                   <X className="w-4 h-4" />
@@ -103,15 +103,15 @@ export function AIChatbot() {
                       >
                         <div className={cn(
                           "w-8 h-8 rounded-lg flex items-center justify-center shrink-0",
-                          msg.role === "user" ? "bg-primary text-white" : "bg-muted text-text-secondary"
+                          msg.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted text-text-secondary"
                         )}>
                           {msg.role === "user" ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
                         </div>
-                        <div className={cn(
+                    <div className={cn(
                           "p-3 rounded-2xl text-sm leading-relaxed",
                           msg.role === "user" 
-                            ? "bg-primary text-white rounded-tr-none" 
-                            : "bg-white border border-border rounded-tl-none shadow-sm"
+                            ? "bg-primary text-primary-foreground rounded-tr-none" 
+                            : "rounded-tl-none border border-border/70 bg-card shadow-sm"
                         )}>
                           {msg.content}
                         </div>
@@ -122,14 +122,14 @@ export function AIChatbot() {
                         <div className="w-8 h-8 rounded-lg bg-muted text-text-secondary flex items-center justify-center shrink-0">
                           <Bot className="w-4 h-4" />
                         </div>
-                        <div className="bg-white border border-border p-3 rounded-2xl rounded-tl-none shadow-sm">
+                        <div className="rounded-2xl rounded-tl-none border border-border/70 bg-card p-3 shadow-sm">
                           <Loader2 className="w-4 h-4 animate-spin text-primary" />
                         </div>
                       </div>
                     )}
                   </div>
                 </ScrollArea>
-                <div className="p-4 bg-white border-t border-border shrink-0">
+                <div className="shrink-0 border-t border-border/70 bg-surface p-4">
                   <form 
                     onSubmit={(e) => { e.preventDefault(); handleSend(); }}
                     className="flex gap-2"

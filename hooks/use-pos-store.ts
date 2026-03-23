@@ -1,9 +1,10 @@
 import { create } from 'zustand';
-import { OrderItem, MenuItem } from '@/types';
+import { Customer, MenuItem, OrderItem } from '@/types';
 
 interface PosState {
   cart: OrderItem[];
   selectedTableId: string | null;
+  selectedCustomer: Customer | null;
   orderType: 'dine_in' | 'takeaway' | 'delivery' | 'online';
   paxCount: number;
   discountAmount: number;
@@ -13,6 +14,7 @@ interface PosState {
   updateQuantity: (itemId: string, quantity: number) => void;
   clearCart: () => void;
   setTable: (tableId: string | null) => void;
+  setCustomer: (customer: Customer | null) => void;
   setOrderType: (type: 'dine_in' | 'takeaway' | 'delivery' | 'online') => void;
   setPaxCount: (count: number) => void;
 }
@@ -20,6 +22,7 @@ interface PosState {
 export const usePosStore = create<PosState>((set) => ({
   cart: [],
   selectedTableId: null,
+  selectedCustomer: null,
   orderType: 'dine_in',
   paxCount: 1,
   discountAmount: 0,
@@ -65,8 +68,15 @@ export const usePosStore = create<PosState>((set) => ({
     })
   })),
 
-  clearCart: () => set({ cart: [], selectedTableId: null, paxCount: 1, discountAmount: 0 }),
+  clearCart: () => set({
+    cart: [],
+    selectedTableId: null,
+    selectedCustomer: null,
+    paxCount: 1,
+    discountAmount: 0,
+  }),
   setTable: (tableId) => set({ selectedTableId: tableId, orderType: tableId ? 'dine_in' : 'takeaway' }),
+  setCustomer: (selectedCustomer) => set({ selectedCustomer }),
   setOrderType: (orderType) => set({ orderType }),
   setPaxCount: (paxCount) => set({ paxCount }),
 }));

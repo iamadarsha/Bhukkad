@@ -7,6 +7,7 @@ export const authConfig = {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
+        token.image = user.image;
         token.role = user.role;
         token.permissions = user.permissions;
         token.outletId = user.outletId;
@@ -16,6 +17,7 @@ export const authConfig = {
     async session({ session, token }) {
       if (token && session.user) {
         session.user.id = token.id as string;
+        session.user.image = (token.image as string | null | undefined) ?? null;
         session.user.role = token.role as string;
         session.user.permissions = token.permissions as string[];
         session.user.outletId = token.outletId as string;
@@ -29,25 +31,5 @@ export const authConfig = {
   session: {
     strategy: 'jwt',
     maxAge: 15 * 60, // 15 minutes for access
-  },
-  cookies: {
-    sessionToken: {
-      name: `next-auth.session-token`,
-      options: {
-        httpOnly: true,
-        sameSite: 'none',
-        path: '/',
-        secure: true,
-      },
-    },
-    csrfToken: {
-      name: `next-auth.csrf-token`,
-      options: {
-        httpOnly: true,
-        sameSite: 'none',
-        path: '/',
-        secure: true,
-      },
-    },
   },
 } satisfies NextAuthConfig;

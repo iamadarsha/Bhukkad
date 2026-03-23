@@ -4,6 +4,8 @@ import { kots, kotItems } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { auth } from '@/lib/auth';
 
+const KOT_STATUSES = new Set(['pending', 'preparing', 'ready', 'served', 'cancelled']);
+
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
@@ -11,6 +13,21 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     if (!session) return new NextResponse('Unauthorized', { status: 401 });
 
     const { status } = await req.json();
+
+    if (typeof status !== 'string' || !KOT_STATUSES.has(status)) {
+      return NextResponse.json({ error: 'Invalid KOT status.' }, { status: 400 });
+    }
+
+    const existingKot = await db.query.kots.findFirst({
+      where: eq(kots.id, id),
+      with: {
+        order: true,
+      },
+    });
+
+    if (!existingKot || existingKot.order?.outletId !== session.user.outletId) {
+      return new NextResponse('KOT not found', { status: 404 });
+    }
 
     const [updatedKot] = await db.update(kots)
       .set({ 

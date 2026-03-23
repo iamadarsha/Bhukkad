@@ -5,11 +5,34 @@ import { motion, AnimatePresence } from "motion/react";
 import { Clock, CheckCircle2, AlertCircle, ChefHat, Timer, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Order, OrderItem } from "@/types";
 import { formatDistanceToNow } from "date-fns";
 
+type TicketItemStatus = "pending" | "preparing" | "ready" | "served" | "cancelled";
+
+interface TicketModifier {
+  name: string;
+}
+
+interface TicketItem {
+  id: string;
+  quantity: number;
+  name: string;
+  status: TicketItemStatus;
+  selectedModifiers?: TicketModifier[];
+  notes?: string;
+}
+
+interface TicketOrder {
+  id: string;
+  orderNumber: string;
+  type: "dine_in" | "takeaway" | "delivery" | "online";
+  tableId?: string;
+  createdAt: string;
+  items: TicketItem[];
+}
+
 interface TicketCardProps {
-  order: Order;
+  order: TicketOrder;
   onStatusChange: (orderId: string, itemId: string, status: string) => void;
   onOrderComplete: (orderId: string) => void;
 }
@@ -52,7 +75,7 @@ export function TicketCard({ order, onStatusChange, onOrderComplete }: TicketCar
     return "bg-muted text-muted-foreground";
   };
 
-  const handleItemClick = (item: OrderItem) => {
+  const handleItemClick = (item: TicketItem) => {
     let nextStatus = "preparing";
     if (item.status === "preparing") nextStatus = "ready";
     if (item.status === "ready") nextStatus = "served"; // Optional, usually FOH does this

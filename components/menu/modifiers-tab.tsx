@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Plus, Edit, Trash2, Loader2, ChevronDown, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
-import { Modal } from "@/components/ui/modal";
+import { Modal, ModalContent, ModalHeader, ModalTitle } from "@/components/ui/modal";
 import { formatCurrency } from "@/lib/utils/currency";
 
 export function ModifiersTab() {
@@ -241,53 +241,59 @@ function GroupModal({ isOpen, onClose, group, onSuccess }: any) {
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={group ? "Edit Group" : "Add Group"}>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-2">
-          <Label>Name</Label>
-          <Input required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="e.g. Crust Type" />
-        </div>
-        
-        <div className="space-y-2">
-          <Label>Selection Type</Label>
-          <Select value={formData.selectionType} onValueChange={v => setFormData({...formData, selectionType: v})}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="single">Single Selection</SelectItem>
-              <SelectItem value="multiple">Multiple Selection</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+    <Modal open={isOpen} onOpenChange={open => !open && onClose()}>
+      <ModalContent>
+        <ModalHeader>
+          <ModalTitle>{group ? "Edit Group" : "Add Group"}</ModalTitle>
+        </ModalHeader>
 
-        {formData.selectionType === 'multiple' && (
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Min Selections</Label>
-              <Input type="number" min="0" value={formData.minSelections} onChange={e => setFormData({...formData, minSelections: parseInt(e.target.value)})} />
-            </div>
-            <div className="space-y-2">
-              <Label>Max Selections</Label>
-              <Input type="number" min="1" value={formData.maxSelections} onChange={e => setFormData({...formData, maxSelections: parseInt(e.target.value)})} />
-            </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label>Name</Label>
+            <Input required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="e.g. Crust Type" />
           </div>
-        )}
-
-        <div className="flex items-center justify-between p-3 border border-border rounded-lg">
-          <div className="space-y-0.5">
-            <Label>Required</Label>
-            <p className="text-xs text-text-muted">Must select at least one</p>
+          
+          <div className="space-y-2">
+            <Label>Selection Type</Label>
+            <Select value={formData.selectionType} onValueChange={v => setFormData({...formData, selectionType: v})}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="single">Single Selection</SelectItem>
+                <SelectItem value="multiple">Multiple Selection</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-          <Switch checked={formData.isRequired} onCheckedChange={v => setFormData({...formData, isRequired: v})} />
-        </div>
 
-        <div className="flex justify-end gap-3 pt-4">
-          <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-            Save Group
-          </Button>
-        </div>
-      </form>
+          {formData.selectionType === 'multiple' && (
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Min Selections</Label>
+                <Input type="number" min="0" value={formData.minSelections} onChange={e => setFormData({...formData, minSelections: parseInt(e.target.value)})} />
+              </div>
+              <div className="space-y-2">
+                <Label>Max Selections</Label>
+                <Input type="number" min="1" value={formData.maxSelections} onChange={e => setFormData({...formData, maxSelections: parseInt(e.target.value)})} />
+              </div>
+            </div>
+          )}
+
+          <div className="flex items-center justify-between rounded-lg border border-border p-3">
+            <div className="space-y-0.5">
+              <Label>Required</Label>
+              <p className="text-xs text-text-muted">Must select at least one</p>
+            </div>
+            <Switch checked={formData.isRequired} onCheckedChange={v => setFormData({...formData, isRequired: v})} />
+          </div>
+
+          <div className="flex justify-end gap-3 pt-4">
+            <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              Save Group
+            </Button>
+          </div>
+        </form>
+      </ModalContent>
     </Modal>
   );
 }
@@ -335,35 +341,41 @@ function ModifierModal({ isOpen, onClose, modifier, groupId, onSuccess }: any) {
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={modifier ? "Edit Modifier" : "Add Modifier"}>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-2">
-          <Label>Name</Label>
-          <Input required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="e.g. Extra Cheese" />
-        </div>
-        
-        <div className="space-y-2">
-          <Label>Price Delta (₹)</Label>
-          <Input type="number" step="0.01" value={formData.priceDelta} onChange={e => setFormData({...formData, priceDelta: parseFloat(e.target.value)})} placeholder="0.00" />
-          <p className="text-xs text-text-muted">Use negative values for discounts</p>
-        </div>
+    <Modal open={isOpen} onOpenChange={open => !open && onClose()}>
+      <ModalContent>
+        <ModalHeader>
+          <ModalTitle>{modifier ? "Edit Modifier" : "Add Modifier"}</ModalTitle>
+        </ModalHeader>
 
-        <div className="flex items-center justify-between p-3 border border-border rounded-lg">
-          <div className="space-y-0.5">
-            <Label>Default Selection</Label>
-            <p className="text-xs text-text-muted">Pre-selected by default</p>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label>Name</Label>
+            <Input required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="e.g. Extra Cheese" />
           </div>
-          <Switch checked={formData.isDefault} onCheckedChange={v => setFormData({...formData, isDefault: v})} />
-        </div>
+          
+          <div className="space-y-2">
+            <Label>Price Delta (₹)</Label>
+            <Input type="number" step="0.01" value={formData.priceDelta} onChange={e => setFormData({...formData, priceDelta: parseFloat(e.target.value)})} placeholder="0.00" />
+            <p className="text-xs text-text-muted">Use negative values for discounts</p>
+          </div>
 
-        <div className="flex justify-end gap-3 pt-4">
-          <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-            Save Modifier
-          </Button>
-        </div>
-      </form>
+          <div className="flex items-center justify-between rounded-lg border border-border p-3">
+            <div className="space-y-0.5">
+              <Label>Default Selection</Label>
+              <p className="text-xs text-text-muted">Pre-selected by default</p>
+            </div>
+            <Switch checked={formData.isDefault} onCheckedChange={v => setFormData({...formData, isDefault: v})} />
+          </div>
+
+          <div className="flex justify-end gap-3 pt-4">
+            <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              Save Modifier
+            </Button>
+          </div>
+        </form>
+      </ModalContent>
     </Modal>
   );
 }

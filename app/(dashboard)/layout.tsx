@@ -1,16 +1,23 @@
-import { Sidebar } from "@/components/layout/sidebar";
+import { redirect } from 'next/navigation';
+import { AppShell } from "@/components/layout/app-shell";
+import { auth } from '@/lib/auth';
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const session = await auth();
+
+  if (!session) {
+    redirect('/login');
+  }
+
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
-      <Sidebar />
-      <main className="flex-1 flex flex-col h-full overflow-hidden relative">
+    <AppShell>
+      <div className="relative flex min-h-full flex-col">
         {children}
-      </main>
-    </div>
+      </div>
+    </AppShell>
   );
 }

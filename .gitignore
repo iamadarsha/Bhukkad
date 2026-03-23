@@ -1,7 +1,14 @@
 node_modules/
 .next/
+.next-dev/
 coverage/
 .DS_Store
 *.log
 .env*
 !.env.example
+sqlite.db-wal
+sqlite.db-shm
+dist/
+output/
+.codex-artifacts/
+.playwright-cli/

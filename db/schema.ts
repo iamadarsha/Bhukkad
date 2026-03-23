@@ -421,6 +421,21 @@ export const auditLogs = sqliteTable('audit_logs', {
 
 import { relations } from 'drizzle-orm';
 
+export const usersRelations = relations(users, ({ one }) => ({
+  role: one(roles, {
+    fields: [users.roleId],
+    references: [roles.id],
+  }),
+  outlet: one(outlets, {
+    fields: [users.outletId],
+    references: [outlets.id],
+  }),
+}));
+
+export const rolesRelations = relations(roles, ({ many }) => ({
+  users: many(users),
+}));
+
 export const modifierGroupsRelations = relations(modifierGroups, ({ many }) => ({
   modifiers: many(modifiers),
 }));
@@ -502,4 +517,3 @@ export const tablesRelations = relations(tables, ({ one }) => ({
 export const tableSectionsRelations = relations(tableSections, ({ many }) => ({
   tables: many(tables),
 }));
-

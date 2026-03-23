@@ -5,14 +5,14 @@ import Image from "next/image";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Modal } from "@/components/ui/modal";
+import { Modal, ModalContent, ModalHeader, ModalTitle } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Loader2, Upload, Image as ImageIcon, X } from "lucide-react";
+import { Loader2, Image as ImageIcon, X } from "lucide-react";
 import { apiClient } from "@/lib/api-client";
 import { Category } from "@/types";
 
@@ -29,7 +29,8 @@ const menuItemSchema = z.object({
   isBestseller: z.boolean().default(false),
 });
 
-type MenuItemFormValues = z.infer<typeof menuItemSchema>;
+type MenuItemFormInput = z.input<typeof menuItemSchema>;
+type MenuItemFormValues = z.output<typeof menuItemSchema>;
 
 interface MenuItemModalProps {
   isOpen: boolean;
@@ -43,6 +44,7 @@ export function MenuItemModal({ isOpen, onClose, item, categories, onSuccess }: 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(item?.imageUrl || null);
   const [isUploading, setIsUploading] = useState(false);
+  const [imageLoadError, setImageLoadError] = useState(false);
 
   const {
     register,
@@ -51,7 +53,7 @@ export function MenuItemModal({ isOpen, onClose, item, categories, onSuccess }: 
     reset,
     setValue,
     watch,
-  } = useForm<MenuItemFormValues>({
+  } = useForm<MenuItemFormInput, unknown, MenuItemFormValues>({
     resolver: zodResolver(menuItemSchema),
     defaultValues: {
       name: "",
@@ -82,9 +84,11 @@ export function MenuItemModal({ isOpen, onClose, item, categories, onSuccess }: 
         isBestseller: item.isBestseller || false,
       });
       setImageUrl(item.imageUrl || null);
+      setImageLoadError(false);
     } else if (isOpen) {
       reset();
       setImageUrl(null);
+      setImageLoadError(false);
     }
   }, [item, isOpen, reset]);
 
@@ -111,8 +115,9 @@ export function MenuItemModal({ isOpen, onClose, item, categories, onSuccess }: 
 
       const data = await res.json();
       setImageUrl(data.url);
+      setImageLoadError(false);
       toast.success("Image uploaded successfully");
-    } catch (error) {
+    } catch {
       toast.error("Failed to upload image");
     } finally {
       setIsUploading(false);
@@ -133,7 +138,7 @@ export function MenuItemModal({ isOpen, onClose, item, categories, onSuccess }: 
       }
       onSuccess();
       onClose();
-    } catch (error) {
+    } catch {
       toast.error(item ? "Failed to update item" : "Failed to create item");
     } finally {
       setIsSubmitting(false);
@@ -141,130 +146,148 @@ export function MenuItemModal({ isOpen, onClose, item, categories, onSuccess }: 
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={item ? "Edit Menu Item" : "Add Menu Item"}>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        
-        {/* Image Upload */}
-        <div className="flex flex-col items-center justify-center gap-4">
-          <div className="relative w-32 h-32 rounded-xl border-2 border-dashed border-border flex items-center justify-center bg-muted overflow-hidden group">
-            {imageUrl ? (
-              <>
-                <div className="relative w-full h-full">
-                  <Image 
-                    src={imageUrl} 
-                    alt="Preview" 
-                    fill 
-                    className="object-cover" 
-                    referrerPolicy="no-referrer"
-                  />
+    <Modal open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <ModalContent className="max-w-2xl">
+        <ModalHeader>
+          <ModalTitle>{item ? "Edit Menu Item" : "Add Menu Item"}</ModalTitle>
+        </ModalHeader>
+
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+
+          {/* Image Upload */}
+          <div className="flex flex-col items-center justify-center gap-4">
+            <div className="relative w-32 h-32 rounded-xl border-2 border-dashed border-border flex items-center justify-center bg-muted overflow-hidden group">
+              {imageUrl && !imageLoadError ? (
+                <>
+                  <div className="relative w-full h-full">
+                    <Image
+                      src={imageUrl}
+                      alt="Preview"
+                      fill
+                      className="object-cover"
+                      referrerPolicy="no-referrer"
+                      onError={() => setImageLoadError(true)}
+                    />
+                  </div>
+                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      className="text-white hover:bg-white/20"
+                      onClick={() => {
+                        setImageUrl(null);
+                        setImageLoadError(false);
+                      }}
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <div className="flex flex-col items-center text-text-muted">
+                  {isUploading ? <Loader2 className="w-6 h-6 animate-spin" /> : <ImageIcon className="w-8 h-8 mb-2 opacity-50" />}
+                  <span className="text-xs font-medium">
+                    {imageLoadError ? "Image unavailable" : "Upload Image"}
+                  </span>
                 </div>
-                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                  <Button type="button" size="icon" variant="ghost" className="text-white hover:bg-white/20" onClick={() => setImageUrl(null)}>
-                    <X className="w-4 h-4" />
-                  </Button>
-                </div>
-              </>
-            ) : (
-              <div className="flex flex-col items-center text-text-muted">
-                {isUploading ? <Loader2 className="w-6 h-6 animate-spin" /> : <ImageIcon className="w-8 h-8 mb-2 opacity-50" />}
-                <span className="text-xs font-medium">Upload Image</span>
+              )}
+              <input
+                type="file"
+                accept="image/*"
+                className="absolute inset-0 opacity-0 cursor-pointer"
+                onChange={handleImageUpload}
+                disabled={isUploading}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Name *</Label>
+              <Input {...register("name")} placeholder="e.g. Paneer Tikka" />
+              {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
+            </div>
+            <div className="space-y-2">
+              <Label>Short Code</Label>
+              <Input {...register("shortCode")} placeholder="e.g. PT" />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Description</Label>
+            <Input {...register("description")} placeholder="Brief description of the item" />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Base Price (₹) *</Label>
+              <Input type="number" step="0.01" {...register("basePrice")} placeholder="0.00" />
+              {errors.basePrice && <p className="text-xs text-destructive">{errors.basePrice.message}</p>}
+            </div>
+            <div className="space-y-2">
+              <Label>Category *</Label>
+              <Select onValueChange={(val) => setValue("categoryId", val)} defaultValue={watch("categoryId")}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map(c => (
+                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.categoryId && <p className="text-xs text-destructive">{errors.categoryId.message}</p>}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Food Type</Label>
+              <Select onValueChange={(val: any) => setValue("foodType", val)} defaultValue={watch("foodType")}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="veg">Vegetarian</SelectItem>
+                  <SelectItem value="non_veg">Non-Vegetarian</SelectItem>
+                  <SelectItem value="vegan">Vegan</SelectItem>
+                  <SelectItem value="egg">Contains Egg</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Spice Level (0-5)</Label>
+              <Input type="number" min="0" max="5" {...register("spiceLevel")} />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex items-center justify-between p-3 border border-border rounded-lg">
+              <div className="space-y-0.5">
+                <Label>Active</Label>
+                <p className="text-xs text-text-muted">Available for ordering</p>
               </div>
-            )}
-            <input 
-              type="file" 
-              accept="image/*" 
-              className="absolute inset-0 opacity-0 cursor-pointer" 
-              onChange={handleImageUpload}
-              disabled={isUploading}
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label>Name *</Label>
-            <Input {...register("name")} placeholder="e.g. Paneer Tikka" />
-            {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
-          </div>
-          <div className="space-y-2">
-            <Label>Short Code</Label>
-            <Input {...register("shortCode")} placeholder="e.g. PT" />
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <Label>Description</Label>
-          <Input {...register("description")} placeholder="Brief description of the item" />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label>Base Price (₹) *</Label>
-            <Input type="number" step="0.01" {...register("basePrice")} placeholder="0.00" />
-            {errors.basePrice && <p className="text-xs text-destructive">{errors.basePrice.message}</p>}
-          </div>
-          <div className="space-y-2">
-            <Label>Category *</Label>
-            <Select onValueChange={(val) => setValue("categoryId", val)} defaultValue={watch("categoryId")}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select category" />
-              </SelectTrigger>
-              <SelectContent>
-                {categories.map(c => (
-                  <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {errors.categoryId && <p className="text-xs text-destructive">{errors.categoryId.message}</p>}
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label>Food Type</Label>
-            <Select onValueChange={(val: any) => setValue("foodType", val)} defaultValue={watch("foodType")}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="veg">Vegetarian</SelectItem>
-                <SelectItem value="non_veg">Non-Vegetarian</SelectItem>
-                <SelectItem value="vegan">Vegan</SelectItem>
-                <SelectItem value="egg">Contains Egg</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label>Spice Level (0-5)</Label>
-            <Input type="number" min="0" max="5" {...register("spiceLevel")} />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div className="flex items-center justify-between p-3 border border-border rounded-lg">
-            <div className="space-y-0.5">
-              <Label>Active</Label>
-              <p className="text-xs text-text-muted">Available for ordering</p>
+              <Switch checked={watch("isActive")} onCheckedChange={(val) => setValue("isActive", val)} />
             </div>
-            <Switch checked={watch("isActive")} onCheckedChange={(val) => setValue("isActive", val)} />
-          </div>
-          <div className="flex items-center justify-between p-3 border border-border rounded-lg">
-            <div className="space-y-0.5">
-              <Label>Bestseller</Label>
-              <p className="text-xs text-text-muted">Highlight in menu</p>
+            <div className="flex items-center justify-between p-3 border border-border rounded-lg">
+              <div className="space-y-0.5">
+                <Label>Bestseller</Label>
+                <p className="text-xs text-text-muted">Highlight in menu</p>
+              </div>
+              <Switch checked={watch("isBestseller")} onCheckedChange={(val) => setValue("isBestseller", val)} />
             </div>
-            <Switch checked={watch("isBestseller")} onCheckedChange={(val) => setValue("isBestseller", val)} />
           </div>
-        </div>
 
-        <div className="flex justify-end gap-3 pt-4 border-t border-border">
-          <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-            {item ? "Update Item" : "Create Item"}
-          </Button>
-        </div>
-      </form>
+          <div className="flex justify-end gap-3 pt-4 border-t border-border">
+            <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              {item ? "Update Item" : "Create Item"}
+            </Button>
+          </div>
+        </form>
+      </ModalContent>
     </Modal>
   );
 }
