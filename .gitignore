@@ -12,3 +12,4 @@ dist/
 output/
 .codex-artifacts/
 .playwright-cli/
+.superpowers/
