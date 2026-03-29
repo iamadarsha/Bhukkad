@@ -137,6 +137,7 @@ export default function TablesPage() {
         </div>
 
         <div className="flex items-center gap-3">
+          <AIChatbot inline />
           <Button variant="outline" onClick={addTable}>
             <Plus className="w-4 h-4 mr-2" /> Add Table
           </Button>
@@ -252,7 +253,6 @@ export default function TablesPage() {
         tableId={selectedTable?.id || ""}
         tableName={selectedTable?.name || ""}
       />
-      <AIChatbot />
     </div>
   );
 }

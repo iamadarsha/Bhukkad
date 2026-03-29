@@ -1,6 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 
-const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY?.trim();
+const apiKey = process.env.GEMINI_API_KEY?.trim();
 const allowedChatTopics = [
   {
     keywords: ["menu", "recommend", "pair", "upsell", "dish", "drink"],
@@ -34,8 +34,7 @@ const allowedChatTopics = [
   },
 ];
 
-export const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
-export const AI_MODE_LABEL = ai ? "Gemini 3.1 Pro" : "Demo mode";
+const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
 
 function buildMenuIntelligenceFallback(prompt: string) {
   const lowerPrompt = prompt.toLowerCase();

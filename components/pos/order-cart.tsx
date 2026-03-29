@@ -10,7 +10,6 @@ import { useState } from "react";
 import { apiClient, getApiErrorMessage } from "@/lib/api-client";
 import { toast } from "sonner";
 import { PaymentModal, PaymentSubmission } from "./payment-modal";
-import { getMenuIntelligence } from "@/lib/ai";
 
 export function OrderCart() {
   const {
@@ -42,8 +41,11 @@ export function OrderCart() {
     try {
       const itemsList = cart.map(i => `${i.quantity}x ${i.itemName}`).join(", ");
       const prompt = `Based on these items in a restaurant order: ${itemsList}. Suggest 2-3 complementary items or drinks from a typical Indian/Global menu that would go well with this order. Keep it very brief and appetizing.`;
-      const suggestion = await getMenuIntelligence(prompt);
-      setAiSuggestion(suggestion);
+      const { data } = await apiClient.post("/ai", {
+        type: "menu-intelligence",
+        prompt,
+      });
+      setAiSuggestion(data?.response ?? null);
     } catch (error) {
       toast.error(getApiErrorMessage(error, "Failed to get AI suggestions right now."));
     } finally {

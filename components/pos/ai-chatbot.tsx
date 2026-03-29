@@ -7,7 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Sparkles, Send, X, Bot, User, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { AI_MODE_LABEL, getChatResponse } from "@/lib/ai";
+import { apiClient, getApiErrorMessage } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
 
 interface Message {
@@ -15,7 +15,17 @@ interface Message {
   content: string;
 }
 
-export function AIChatbot() {
+interface AIChatbotProps {
+  inline?: boolean;
+  compact?: boolean;
+  triggerClassName?: string;
+}
+
+export function AIChatbot({
+  inline = false,
+  compact = false,
+  triggerClassName,
+}: AIChatbotProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     { role: "assistant", content: "Hi! I'm your SpiceOS assistant. How can I help you with your restaurant operations today?" }
@@ -39,10 +49,23 @@ export function AIChatbot() {
     setIsLoading(true);
 
     try {
-      const response = await getChatResponse(userMessage);
+      const { data } = await apiClient.post("/ai", {
+        type: "chat",
+        prompt: userMessage,
+      });
+      const response = data?.response as string | undefined;
       setMessages(prev => [...prev, { role: "assistant", content: response || "I'm sorry, I couldn't process that." }]);
     } catch (error) {
-      setMessages(prev => [...prev, { role: "assistant", content: "An error occurred. Please try again later." }]);
+      setMessages(prev => [
+        ...prev,
+        {
+          role: "assistant",
+          content: getApiErrorMessage(
+            error,
+            "I couldn't reach the AI assistant just now. Please try again in a moment."
+          ),
+        },
+      ]);
     } finally {
       setIsLoading(false);
     }
@@ -53,12 +76,23 @@ export function AIChatbot() {
       {/* Floating Button */}
       <Button
         onClick={() => setIsOpen(true)}
+        disabled={isOpen}
+        variant={inline ? (compact ? "ghost" : "outline") : "default"}
+        size={inline ? (compact ? "icon" : "sm") : "icon"}
         className={cn(
-          "fixed bottom-6 right-6 w-14 h-14 rounded-full shadow-2xl z-50 transition-all duration-300",
-          isOpen ? "scale-0 opacity-0" : "scale-100 opacity-100"
+          inline
+            ? compact
+              ? "h-10 w-10 rounded-[var(--radius-medium)] bg-background/80 text-text-secondary shadow-[var(--shadow-elevation-1)] hover:bg-muted"
+              : "h-10 rounded-lg border border-primary/20 bg-background px-4 font-semibold text-primary shadow-[var(--shadow-elevation-1)] hover:bg-primary/5"
+            : "fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full shadow-2xl transition-all duration-300",
+          !inline && (isOpen ? "scale-0 opacity-0" : "scale-100 opacity-100"),
+          triggerClassName
         )}
+        aria-label="Open AI assistant"
+        title="Open AI assistant"
       >
         <Sparkles className="w-6 h-6" />
+        {inline && !compact ? <span className="ml-2">AI Assistant</span> : null}
       </Button>
 
       {/* Chat Window */}
@@ -68,7 +102,7 @@ export function AIChatbot() {
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            className="fixed bottom-6 right-6 w-[400px] h-[600px] z-50 flex flex-col"
+            className="fixed inset-x-4 bottom-4 top-24 z-50 flex flex-col md:inset-x-auto md:right-6 md:top-auto md:h-[600px] md:w-[400px] md:bottom-6"
           >
             <Card className="flex-1 flex flex-col shadow-2xl border-primary/20 overflow-hidden">
               <CardHeader className="bg-primary text-primary-foreground p-4 flex flex-row items-center justify-between shrink-0">
@@ -78,7 +112,7 @@ export function AIChatbot() {
                   </div>
                   <div>
                     <CardTitle className="text-sm font-bold">SpiceOS AI Assistant</CardTitle>
-                    <p className="text-[10px] text-primary-foreground/80">Powered by {AI_MODE_LABEL}</p>
+                    <p className="text-[10px] text-primary-foreground/80">Menu, service, and ops help</p>
                   </div>
                 </div>
                 <Button 

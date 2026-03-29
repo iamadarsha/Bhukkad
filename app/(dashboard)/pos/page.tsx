@@ -251,6 +251,7 @@ export default function POSPage() {
                   Sync degraded
                 </div>
               ) : null}
+              <AIChatbot inline compact />
               <QuickActionButton
                 onClick={() => void loadData()}
                 disabled={isRefreshing}
@@ -343,7 +344,6 @@ export default function POSPage() {
         onClose={() => setShowCustomerModal(false)}
         onSelect={setCustomer}
       />
-      <AIChatbot />
     </div>
   );
 }
