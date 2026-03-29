@@ -6,11 +6,16 @@ import { users, roles } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
 import { authConfig } from './auth.config';
-import { createDemoSession, DEMO_MODE } from './demo-mode';
+import {
+  assertAuthSecretConfigured,
+  createDemoSession,
+  DEMO_MODE,
+  resolveAuthSecret,
+} from './demo-mode';
 
 const { handlers, auth: originalAuth, signIn, signOut } = NextAuth({
   ...authConfig,
-  secret: process.env.AUTH_SECRET || 'bhukkad-demo-secret',
+  secret: resolveAuthSecret(),
   providers: [
     CredentialsProvider({
       name: 'Credentials',
@@ -147,6 +152,8 @@ function isDynamicServerUsageError(error: unknown) {
 export async function auth(): Promise<Session | null>;
 export async function auth(...args: unknown[]): Promise<Session | null>;
 export async function auth(...args: unknown[]) {
+  assertAuthSecretConfigured('auth()');
+
   try {
     if (args.length === 0) {
       return normalizeSession(await originalAuth());

@@ -1,7 +1,11 @@
 import NextAuth from 'next-auth';
 import { NextResponse } from 'next/server';
 import { authConfig } from '@/lib/auth.config';
-import { DEMO_MODE } from '@/lib/demo-mode';
+import {
+  assertAuthSecretConfigured,
+  DEMO_MODE,
+  resolveAuthSecret,
+} from '@/lib/demo-mode';
 
 export const config = {
   matcher: ['/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)'],
@@ -9,10 +13,24 @@ export const config = {
 
 const authMiddleware = NextAuth({
   ...authConfig,
-  secret: process.env.AUTH_SECRET || 'bhukkad-demo-secret',
+  secret: resolveAuthSecret(),
 }).auth((req) => {
+  try {
+    assertAuthSecretConfigured('middleware.ts');
+  } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : 'AUTH_SECRET must be configured before serving authenticated pages.';
+
+    return new NextResponse(message, { status: 500 });
+  }
+
   const isLoggedIn = Boolean(req.auth);
-  const isLoginPage = req.nextUrl.pathname === '/login';
+  const { pathname, search } = req.nextUrl;
+  const isLoginPage = pathname === '/login';
+  const isTabletPage = pathname.startsWith('/tablet/');
+  const isPublicPage = isLoginPage || isTabletPage;
 
   if (isLoginPage && isLoggedIn) {
     const nextPath = req.nextUrl.searchParams.get('next');
@@ -20,9 +38,13 @@ const authMiddleware = NextAuth({
     return NextResponse.redirect(redirectUrl);
   }
 
+  if (isPublicPage) {
+    return NextResponse.next();
+  }
+
   if (!isLoggedIn) {
     const loginUrl = new URL('/login', req.nextUrl.origin);
-    const requestPath = `${req.nextUrl.pathname}${req.nextUrl.search}`;
+    const requestPath = `${pathname}${search}`;
 
     if (requestPath && requestPath !== '/login') {
       loginUrl.searchParams.set('next', requestPath);
