@@ -4,7 +4,10 @@ import next from 'next';
 import { Server } from 'socket.io';
 
 const dev = process.env.NODE_ENV !== 'production';
-const hostname = process.env.HOSTNAME || '0.0.0.0';
+// Platforms like Render set HOSTNAME to a container identifier, not a bindable host.
+const hostname = dev
+  ? process.env.HOST || process.env.HOSTNAME || '0.0.0.0'
+  : process.env.HOST || '0.0.0.0';
 const port = parseInt(process.env.PORT || '3000', 10);
 const displayHost = hostname === '0.0.0.0' ? 'localhost' : hostname;
 const allowedOrigins = (process.env.SOCKET_ALLOWED_ORIGINS || process.env.APP_URL || '')

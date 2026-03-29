@@ -6,12 +6,14 @@
     "dev": "tsx server.ts",
     "build": "next build && tsc -p tsconfig.server.json",
     "start": "node dist/server.js",
+    "start:render": "node scripts/render-start.js",
     "lint": "eslint .",
     "clean": "next clean",
+    "db:reset": "tsx db/reset.ts",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "db:seed": "tsx db/seed.ts",
-    "db:setup": "npm run db:push && npm run db:seed"
+    "db:setup": "npm run db:reset && npm run db:push && npm run db:seed"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
