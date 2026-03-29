@@ -15,12 +15,12 @@ import {
   Area,
   AreaChart,
   CartesianGrid,
-  ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
 import { toast } from "sonner";
+import { ResponsiveChartFrame } from "@/components/charts/responsive-chart-frame";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -253,9 +253,9 @@ export default function DashboardPage() {
                 </p>
               </div>
             ) : (
-              <div className="h-[350px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={overview.salesByHour}>
+              <ResponsiveChartFrame className="h-[350px] w-full">
+                {({ height, width }) => (
+                  <AreaChart data={overview.salesByHour} height={height} width={width}>
                     <defs>
                       <linearGradient id="bhukkadSales" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.38} />
@@ -295,8 +295,8 @@ export default function DashboardPage() {
                       fill="url(#bhukkadSales)"
                     />
                   </AreaChart>
-                </ResponsiveContainer>
-              </div>
+                )}
+              </ResponsiveChartFrame>
             )}
           </CardContent>
         </Card>

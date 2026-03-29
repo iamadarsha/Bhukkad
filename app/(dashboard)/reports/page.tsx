@@ -27,13 +27,13 @@ import {
   CartesianGrid,
   Line,
   LineChart,
-  ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
 import { toast } from "sonner";
 
+import { ResponsiveChartFrame } from "@/components/charts/responsive-chart-frame";
 import type { ReportsSummary } from "@/lib/analytics";
 
 function formatServiceDate(value: string) {
@@ -236,11 +236,13 @@ export default function ReportsPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="h-[320px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveChartFrame className="h-[320px] w-full">
+              {({ height, width }) => (
                 <BarChart
                   data={summary.weeklyPerformance}
+                  height={height}
                   margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+                  width={width}
                 >
                   <CartesianGrid
                     strokeDasharray="4 6"
@@ -279,8 +281,8 @@ export default function ReportsPage() {
                     maxBarSize={44}
                   />
                 </BarChart>
-              </ResponsiveContainer>
-            </div>
+              )}
+            </ResponsiveChartFrame>
           </CardContent>
         </Card>
 
@@ -292,11 +294,13 @@ export default function ReportsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-[320px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveChartFrame className="h-[320px] w-full">
+              {({ height, width }) => (
                 <LineChart
                   data={summary.weeklyPerformance}
+                  height={height}
                   margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+                  width={width}
                 >
                   <CartesianGrid
                     strokeDasharray="4 6"
@@ -339,8 +343,8 @@ export default function ReportsPage() {
                     activeDot={{ r: 6, fill: "var(--primary)" }}
                   />
                 </LineChart>
-              </ResponsiveContainer>
-            </div>
+              )}
+            </ResponsiveChartFrame>
           </CardContent>
         </Card>
       </div>

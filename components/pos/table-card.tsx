@@ -1,6 +1,7 @@
 "use client";
 
 import { Table } from "@/types";
+import { formatDistanceToNow } from "date-fns";
 import { motion } from "motion/react";
 import { Users, Clock } from "lucide-react";
 import {
@@ -15,6 +16,19 @@ interface TableCardProps {
   table: Table;
   onClick: () => void;
   isSelected?: boolean;
+}
+
+function formatOccupiedSince(value?: string | null) {
+  if (!value) {
+    return null;
+  }
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return null;
+  }
+
+  return formatDistanceToNow(parsed, { addSuffix: true });
 }
 
 export function TableCard({ table, onClick, isSelected }: TableCardProps) {
@@ -46,9 +60,9 @@ export function TableCard({ table, onClick, isSelected }: TableCardProps) {
   };
 
   const isOccupied = table.status === "occupied";
-  const mockOrderTotal = isOccupied ? 1240 : 0; // Mock data
-  const mockGuests = isOccupied ? 2 : 0; // Mock data
-  const mockTime = isOccupied ? "45m" : ""; // Mock data
+  const activeOrderTotal = Number(table.activeOrderTotal ?? 0);
+  const activeGuestCount = Number(table.activeGuestCount ?? 0);
+  const occupiedSince = formatOccupiedSince(table.occupiedSince);
 
   return (
     <TooltipProvider delayDuration={300}>
@@ -72,9 +86,9 @@ export function TableCard({ table, onClick, isSelected }: TableCardProps) {
           >
             <span className="text-lg font-bold leading-none">{table.name}</span>
             
-            {isOccupied && (
+            {isOccupied && activeOrderTotal > 0 && (
               <span className="absolute bottom-1 rounded-full border border-border/70 bg-card/90 px-2 py-0.5 text-[10px] font-bold text-text-primary shadow-sm backdrop-blur-sm">
-                {formatCurrency(mockOrderTotal)}
+                {formatCurrency(activeOrderTotal)}
               </span>
             )}
             
@@ -101,15 +115,17 @@ export function TableCard({ table, onClick, isSelected }: TableCardProps) {
             <>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Users className="w-4 h-4" />
-                <span>Guests: {mockGuests}</span>
+                <span>Guests: {activeGuestCount}</span>
               </div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Clock className="w-4 h-4" />
-                <span>Seated: {mockTime}</span>
-              </div>
+              {occupiedSince ? (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Clock className="w-4 h-4" />
+                  <span>Seated: {occupiedSince}</span>
+                </div>
+              ) : null}
               <div className="mt-2 pt-2 border-t border-border/50 flex items-center justify-between font-bold text-foreground">
                 <span>Current Bill:</span>
-                <span className="text-primary">{formatCurrency(mockOrderTotal)}</span>
+                <span className="text-primary">{formatCurrency(activeOrderTotal)}</span>
               </div>
             </>
           )}

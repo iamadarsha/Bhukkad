@@ -33,6 +33,8 @@ This document inventories the route handlers currently present under `app/api`.
 | `POST` | `/api/orders` | Protected | Create a new order from staff flows. |
 | `GET` | `/api/orders/history` | Protected | Historical order listing. |
 | `POST` | `/api/orders/[id]/pay` | Protected | Apply payment data to an order and update downstream table state. |
+| `POST` | `/api/orders/[id]/payment-session` | Protected | Create or initialize a payment attempt for the selected provider and return checkout or session details. |
+| `POST` | `/api/payments/webhooks/[provider]` | Public | Receive gateway webhook updates, reconcile payment attempts, and finalize successful orders idempotently. |
 
 ## Kitchen and KOT
 
@@ -144,6 +146,7 @@ Upload constraints:
 - `app/api/dashboard/overview/route.ts`
 - `app/api/reports/summary/route.ts`
 - `app/api/orders/**`
+- `app/api/payments/**`
 - `app/api/kitchen/kots/**`
 - `app/api/menu/**`
 - `app/api/tables/**`

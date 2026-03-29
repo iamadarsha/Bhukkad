@@ -68,12 +68,12 @@ export function Sidebar() {
 
       <div className="mt-4 rounded-[var(--radius-large)] border border-border/60 bg-card/80 p-3 shadow-[var(--shadow-elevation-1)]">
         <div className="flex items-center justify-center gap-3 xl:justify-start">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
-            A
+          <div className="brand-script flex h-10 w-10 items-center justify-center rounded-full bg-primary text-lg font-extrabold text-primary-foreground">
+            भ
           </div>
           <div className="hidden xl:block">
-            <p className="text-sm font-semibold text-foreground">Admin Console</p>
-            <p className="text-xs font-medium text-muted-foreground">Floor + kitchen controls</p>
+            <p className="text-sm font-semibold text-foreground">Bhukkad Control</p>
+            <p className="text-xs font-medium text-muted-foreground">Floor, menu, and kitchen rhythm</p>
           </div>
         </div>
       </div>

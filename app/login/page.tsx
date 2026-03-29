@@ -19,7 +19,8 @@ function LoginCard({
       <div className="absolute right-5 top-5 z-10">
         <ThemeToggle />
       </div>
-      <Card className="surface-shell w-full max-w-md border-border/70 bg-card/90 shadow-[var(--shadow-elevation-3)]">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-56 bg-[radial-gradient(circle_at_top,rgba(166,66,24,0.18),transparent_58%)]" />
+      <Card className="surface-shell relative w-full max-w-md border-border/70 bg-card/92 shadow-[var(--shadow-elevation-3)]">
         <CardHeader className="space-y-5 text-center">
           <div className="flex justify-center">
             <BrandMark withTagline />
@@ -27,7 +28,7 @@ function LoginCard({
           <div className="space-y-2">
             <CardTitle className="brand-display text-3xl font-semibold">Welcome back</CardTitle>
             <CardDescription className="mx-auto max-w-sm text-sm font-medium leading-relaxed">
-              Sign in to manage orders, dining rooms, kitchen flow, and daily service decisions from one place.
+              Sign in to run dining rooms, kitchen flow, and guest service from one expressive Bhukkad workspace.
             </CardDescription>
           </div>
         </CardHeader>

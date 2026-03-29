@@ -28,7 +28,8 @@ This document describes the actual stack in the repository today, not an aspirat
 - Drizzle ORM `0.45.1`
 - Drizzle Kit `0.31.4`
 - `better-sqlite3` `12.8.0`
-- Local database file: `sqlite.db`
+- Default local database file: `sqlite.db`
+- Optional override: `SQLITE_DB_PATH`
 - SQLite pragmas in `db/index.ts`:
   - `journal_mode = WAL`
   - `foreign_keys = ON`
@@ -90,7 +91,7 @@ This document describes the actual stack in the repository today, not an aspirat
 
 - `APP_URL`
 - `AUTH_SECRET`
-- `NEXT_PUBLIC_GEMINI_API_KEY`
+- `GEMINI_API_KEY`
 - `HOSTNAME`
 - `PORT`
 - `SOCKET_ALLOWED_ORIGINS`

@@ -6,7 +6,8 @@ This document summarizes the Drizzle schema in `db/schema.ts`.
 
 - Database engine: SQLite
 - Access layer: Drizzle ORM + `better-sqlite3`
-- Database file: `sqlite.db`
+- Default database file: `sqlite.db`
+- Optional override: `SQLITE_DB_PATH`
 - Seed data: `db/seed.ts`
 
 ## Design Principles
@@ -140,6 +141,10 @@ Kitchen-prep line items with per-item kitchen status.
 
 Payment records linked to orders.
 
+### `payment_attempts`
+
+Provider-facing payment lifecycle records that capture gateway session IDs, reconciliation state, webhook payloads, and settlement errors before an order is marked paid.
+
 ### `payment_splits`
 
 Split payment breakdowns for an order or payment flow.
@@ -210,6 +215,9 @@ Change history and important operator actions.
 - `kots.orderId -> orders.id`
 - `kot_items.kotId -> kots.id`
 - `kot_items.orderItemId -> order_items.id`
+- `payment_attempts.outletId -> outlets.id`
+- `payment_attempts.orderId -> orders.id`
+- `payment_attempts.cashierId -> users.id`
 - `payments.orderId -> orders.id`
 - `inventory_transactions.inventoryItemId -> inventory_items.id`
 - `purchase_orders.supplierId -> suppliers.id`
@@ -220,12 +228,13 @@ Change history and important operator actions.
 - The schema is dense and highly interconnected. Order changes usually cascade into tables, KOTs, payments, and sometimes customers.
 - `db/seed.ts` provides a realistic local restaurant dataset, not just placeholder rows.
 - The current setup uses `drizzle-kit push` against SQLite rather than a migration history checked into this repo.
+- `npm run db:setup` rebuilds the target SQLite file from scratch before seeding demo data, while `npm run db:push` preserves existing rows.
 
 ## When Updating the Schema
 
 1. Update `db/schema.ts`.
 2. Update `db/seed.ts` if local demo behavior depends on the new fields.
-3. Run `npm run db:push` or `npm run db:setup`.
+3. Run `npm run db:push` to preserve local data, or `npm run db:setup` to rebuild the local demo database from scratch.
 4. Update affected route handlers and pages.
 5. Update this document if tables or domain boundaries changed.
 

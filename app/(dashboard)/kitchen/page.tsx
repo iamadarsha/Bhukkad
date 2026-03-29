@@ -11,6 +11,37 @@ import { ChefHat, Filter, Clock, CheckCircle2, PlayCircle, Loader2 } from "lucid
 import { motion, AnimatePresence } from "motion/react";
 import { toast } from "sonner";
 
+function playNewKotAlert() {
+  const AudioContextClass =
+    window.AudioContext ??
+    (window as Window & typeof globalThis & { webkitAudioContext?: typeof AudioContext })
+      .webkitAudioContext;
+
+  if (!AudioContextClass) return;
+
+  const context = new AudioContextClass();
+  const oscillator = context.createOscillator();
+  const gainNode = context.createGain();
+
+  oscillator.type = "triangle";
+  oscillator.frequency.setValueAtTime(880, context.currentTime);
+  oscillator.frequency.exponentialRampToValueAtTime(1320, context.currentTime + 0.12);
+
+  gainNode.gain.setValueAtTime(0.0001, context.currentTime);
+  gainNode.gain.exponentialRampToValueAtTime(0.08, context.currentTime + 0.02);
+  gainNode.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.22);
+
+  oscillator.connect(gainNode);
+  gainNode.connect(context.destination);
+
+  oscillator.start(context.currentTime);
+  oscillator.stop(context.currentTime + 0.22);
+
+  oscillator.onended = () => {
+    void context.close().catch(() => undefined);
+  };
+}
+
 export default function KitchenPage() {
   const [kots, setKots] = useState<any[]>([]);
   const [filter, setFilter] = useState("all"); // all, dine_in, takeaway, delivery
@@ -29,9 +60,7 @@ export default function KitchenPage() {
 
           socket.on("kot:new", (data) => {
             setKots(prev => [data, ...prev]);
-            // Play sound
-            const audio = new Audio('/sounds/new-kot.mp3');
-            audio.play().catch(e => console.log("Audio play blocked", e));
+            playNewKotAlert();
             toast("New Order Received!", { icon: "🔔" });
           });
 

@@ -52,41 +52,42 @@ type TabletCartItem = {
   itemNote: string;
 };
 
-const COPY: Record<
-  TabletLanguageCode,
-  {
-    welcomeEyebrow: string;
-    welcomeTitle: string;
-    welcomeSubtitle: string;
-    searchPlaceholder: string;
-    allCategories: string;
-    orderSummary: string;
-    yourTable: string;
-    guests: string;
-    emptyCartTitle: string;
-    emptyCartBody: string;
-    specialInstructions: string;
-    specialInstructionsPlaceholder: string;
-    taxesNotice: string;
-    placeOrder: string;
-    itemNotes: string;
-    itemNotesPlaceholder: string;
-    chooseVariant: string;
-    customizeDish: string;
-    addToCart: string;
-    required: string;
-    chooseUpTo: string;
-    chooseOne: string;
-    language: string;
-    orderPlaced: string;
-    orderFailed: string;
-    subtotal: string;
-    quantity: string;
-    startOrdering: string;
-    unavailable: string;
-    retry: string;
-  }
-> = {
+type SupportedTabletCopyLanguage = Extract<TabletLanguageCode, "en" | "hi">;
+
+type TabletCopy = {
+  welcomeEyebrow: string;
+  welcomeTitle: string;
+  welcomeSubtitle: string;
+  searchPlaceholder: string;
+  allCategories: string;
+  orderSummary: string;
+  yourTable: string;
+  guests: string;
+  emptyCartTitle: string;
+  emptyCartBody: string;
+  specialInstructions: string;
+  specialInstructionsPlaceholder: string;
+  taxesNotice: string;
+  placeOrder: string;
+  itemNotes: string;
+  itemNotesPlaceholder: string;
+  chooseVariant: string;
+  customizeDish: string;
+  addToCart: string;
+  required: string;
+  chooseUpTo: string;
+  chooseOne: string;
+  language: string;
+  orderPlaced: string;
+  orderFailed: string;
+  subtotal: string;
+  quantity: string;
+  startOrdering: string;
+  unavailable: string;
+  retry: string;
+};
+
+const COPY: Record<SupportedTabletCopyLanguage, TabletCopy> = {
   en: {
     welcomeEyebrow: "Bhukkad Table Ordering",
     welcomeTitle: "Order directly from your table",
@@ -153,6 +154,10 @@ const COPY: Record<
   },
 };
 
+function resolveTabletCopyLanguage(language: TabletLanguageCode): SupportedTabletCopyLanguage {
+  return language === "hi" ? "hi" : "en";
+}
+
 function roundCurrency(value: number) {
   return Math.round(value * 100) / 100;
 }
@@ -181,7 +186,7 @@ function isMultipleSelectionGroup(
 }
 
 function foodTypeLabel(foodType: TabletMenuItem["foodType"], language: TabletLanguageCode) {
-  const labels = {
+  const labels: Record<SupportedTabletCopyLanguage, Record<TabletMenuItem["foodType"], string>> = {
     en: {
       veg: "Veg",
       non_veg: "Non-Veg",
@@ -196,7 +201,8 @@ function foodTypeLabel(foodType: TabletMenuItem["foodType"], language: TabletLan
     },
   };
 
-  return labels[language][foodType] ?? labels[language].veg;
+  const copyLanguage = resolveTabletCopyLanguage(language);
+  return labels[copyLanguage][foodType] ?? labels[copyLanguage].veg;
 }
 
 export function TabletOrderShell({ tableId }: TabletOrderShellProps) {
@@ -217,7 +223,7 @@ export function TabletOrderShell({ tableId }: TabletOrderShellProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [lastOrderNumber, setLastOrderNumber] = useState<string | null>(null);
 
-  const copy = COPY[activeLanguage];
+  const copy = COPY[resolveTabletCopyLanguage(activeLanguage)];
 
   const loadBootstrap = useCallback(async () => {
     setIsLoading(true);

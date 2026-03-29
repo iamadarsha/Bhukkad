@@ -9,11 +9,13 @@ import {
   menuItems,
   orderItems,
   orders,
+  outlets,
   tables,
 } from '@/db/schema';
+import { calculateBillPreview, roundCurrency } from '@/lib/billing';
+import { normalizeOutletSettings } from '@/lib/outlet-config';
 
 const ORDER_TYPES = new Set(['dine_in', 'takeaway', 'delivery', 'online']);
-const DEMO_TAX_RATE = 0.05;
 
 type RawModifier = {
   modifierId?: unknown;
@@ -62,8 +64,6 @@ export class OrderCreationError extends Error {
     this.name = 'OrderCreationError';
   }
 }
-
-const roundCurrency = (value: number) => Math.round(value * 100) / 100;
 
 const normalizeOptionalText = (value: unknown) => {
   if (typeof value !== 'string') return null;
@@ -120,8 +120,6 @@ export async function createOrder({
   const tableId = normalizeOptionalText(body.tableId);
   const customerId = normalizeOptionalText(body.customerId);
   const requestedOrderType = normalizeOptionalText(body.orderType);
-  const orderType =
-    requestedOrderType && ORDER_TYPES.has(requestedOrderType) ? requestedOrderType : 'dine_in';
   const paxCount = Math.max(1, Math.min(20, Math.trunc(toSafeNumber(body.paxCount, 1))));
   const requestedDiscount = roundCurrency(Math.max(0, toSafeNumber(body.discountAmount)));
   const specialInstructions = normalizeOptionalText(body.specialInstructions);
@@ -130,6 +128,26 @@ export async function createOrder({
   if (items.length === 0) {
     throw new OrderCreationError(400, 'Add at least one item before creating an order.');
   }
+
+  const outlet = await db.query.outlets.findFirst({
+    where: eq(outlets.id, outletId),
+  });
+
+  if (!outlet) {
+    throw new OrderCreationError(404, 'Outlet not found.');
+  }
+
+  const outletSettings = normalizeOutletSettings(outlet.settings);
+  const enabledOrderTypes = new Set(outletSettings.serviceModes);
+  const fallbackOrderType = enabledOrderTypes.has('dine_in')
+    ? 'dine_in'
+    : outletSettings.serviceModes[0] ?? 'dine_in';
+  const orderType =
+    requestedOrderType &&
+    ORDER_TYPES.has(requestedOrderType) &&
+    enabledOrderTypes.has(requestedOrderType as typeof outletSettings.serviceModes[number])
+      ? requestedOrderType
+      : fallbackOrderType;
 
   let selectedTable: typeof tables.$inferSelect | null = null;
   if (tableId) {
@@ -245,10 +263,14 @@ export async function createOrder({
   }
 
   const subtotal = roundCurrency(sanitizedItems.reduce((sum, item) => sum + item.itemTotal, 0));
-  const discountAmount = roundCurrency(Math.min(requestedDiscount, subtotal));
-  const taxableSubtotal = Math.max(0, subtotal - discountAmount);
-  const taxAmount = roundCurrency(taxableSubtotal * DEMO_TAX_RATE);
-  const totalAmount = roundCurrency(taxableSubtotal + taxAmount);
+  const bill = calculateBillPreview({
+    subtotal,
+    discountAmount: requestedDiscount,
+    taxRate: outletSettings.taxRate,
+    serviceChargeRate: outletSettings.serviceCharge,
+    applyTaxOnServiceCharge: outletSettings.applyTaxOnServiceCharge,
+    roundOffStrategy: outletSettings.roundOffStrategy,
+  });
 
   const orderId = randomUUID();
   const orderNumber = generateOrderNumber();
@@ -277,10 +299,11 @@ export async function createOrder({
         orderNumber,
         orderType,
         paxCount,
-        subtotal,
-        discountAmount,
-        taxAmount,
-        totalAmount,
+        subtotal: bill.subtotal,
+        discountAmount: bill.discountAmount,
+        taxAmount: bill.taxAmount,
+        serviceCharge: bill.serviceChargeAmount,
+        totalAmount: bill.totalAmount,
         specialInstructions,
         status: 'active',
       })
@@ -323,7 +346,7 @@ export async function createOrder({
         .update(customers)
         .set({
           totalVisits: sql`coalesce(${customers.totalVisits}, 0) + 1`,
-          totalSpend: sql`coalesce(${customers.totalSpend}, 0) + ${totalAmount}`,
+          totalSpend: sql`coalesce(${customers.totalSpend}, 0) + ${bill.totalAmount}`,
         })
         .where(and(eq(customers.id, customerId), eq(customers.outletId, outletId)))
         .run();
@@ -350,6 +373,7 @@ export async function createOrder({
       items: preparedKotItems,
       table: selectedTable ? { id: selectedTable.id, name: selectedTable.name } : null,
       orderType,
+      totalAmount: bill.totalAmount,
       createdAt: new Date().toISOString(),
     });
 

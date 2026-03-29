@@ -54,7 +54,7 @@ async function seed() {
   const tables = [
     schema.auditLogs, schema.dayEndReports, schema.reservations, schema.onlineOrders, schema.onlineOrderSources,
     schema.staffAttendance, schema.purchaseOrderItems, schema.purchaseOrders, schema.suppliers, schema.itemInventoryMap,
-    schema.inventoryTransactions, schema.inventoryItems, schema.paymentSplits, schema.payments, schema.kotItems, schema.kots,
+    schema.inventoryTransactions, schema.inventoryItems, schema.paymentSplits, schema.payments, schema.paymentAttempts, schema.kotItems, schema.kots,
     schema.orderItemModifiers, schema.orderItems, schema.orders, schema.loyaltyTransactions, schema.customers,
     schema.coupons, schema.discounts, schema.taxCategories, schema.menuItemVariants, schema.modifiers, schema.itemModifierGroups,
     schema.modifierGroups, schema.menuItems, schema.menuCategories, schema.tables, schema.tableSections, schema.users,
@@ -85,6 +85,31 @@ async function seed() {
       brandTone: 'Modern Indian dining',
       openingHours: '11:00 AM - 11:30 PM',
       serviceModes: ['dine_in', 'takeaway', 'delivery', 'online'],
+      payments: {
+        defaultProvider: 'manual',
+        providers: {
+          manual: {
+            enabled: true,
+            mode: 'sandbox',
+            displayName: 'Manual POS Settlement',
+            supportedMethods: ['cash', 'card', 'upi', 'wallet', 'complimentary'],
+          },
+          stripe: {
+            enabled: false,
+            mode: 'sandbox',
+            displayName: 'Stripe',
+            supportedMethods: ['card', 'wallet'],
+            publishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? null,
+          },
+          razorpay: {
+            enabled: false,
+            mode: 'sandbox',
+            displayName: 'Razorpay',
+            supportedMethods: ['card', 'upi', 'wallet'],
+            keyId: process.env.RAZORPAY_KEY_ID ?? null,
+          },
+        },
+      },
     },
   }).returning();
 
@@ -139,23 +164,33 @@ async function seed() {
   ];
   await db.insert(schema.menuCategories).values(categoriesData);
 
+  const menuArtwork = {
+    starters: '/menu/generic-starters.svg',
+    mains: '/menu/generic-mains.svg',
+    rice: '/menu/generic-rice.svg',
+    breads: '/menu/generic-breads.svg',
+    beverages: '/menu/generic-beverages.svg',
+    desserts: '/menu/generic-desserts.svg',
+    combos: '/menu/generic-combos.svg',
+  } as const;
+
   const menuItemsData = [
-    { id: 'item-1', categoryId: 'cat-starters', outletId: outlet.id, name: 'Paneer Tikka', description: 'Char-grilled cottage cheese with mint chutney.', shortCode: 'PTK', imageUrl: '/menu/paneer-tikka.jpg', basePrice: 220, foodType: 'veg', taxCategoryId: 'tax-food', isActive: true, isBestseller: true, isChefsSpecial: false, spiceLevel: 2, prepTimeMinutes: 18, displayOrder: 1, tags: ['grilled', 'starter'] },
-    { id: 'item-2', categoryId: 'cat-starters', outletId: outlet.id, name: 'Chicken Tikka', description: 'Juicy tikka skewers finished in the tandoor.', shortCode: 'CTK', imageUrl: '/menu/chicken-tikka.jpg', basePrice: 280, foodType: 'non_veg', taxCategoryId: 'tax-food', isActive: true, isBestseller: true, isChefsSpecial: false, spiceLevel: 3, prepTimeMinutes: 20, displayOrder: 2, tags: ['tandoor', 'starter'] },
-    { id: 'item-3', categoryId: 'cat-starters', outletId: outlet.id, name: 'Crispy Corn Chaat', description: 'Sweet corn tossed with chaat masala and herbs.', shortCode: 'CCC', imageUrl: '/menu/crispy-corn.jpg', basePrice: 180, foodType: 'veg', taxCategoryId: 'tax-food', isActive: true, isBestseller: false, isChefsSpecial: true, spiceLevel: 1, prepTimeMinutes: 12, displayOrder: 3, tags: ['chaat', 'snack'] },
-    { id: 'item-4', categoryId: 'cat-mains', outletId: outlet.id, name: 'Butter Chicken', description: 'Classic creamy tomato curry with smoky chicken.', shortCode: 'BCH', imageUrl: '/menu/butter-chicken.jpg', basePrice: 320, foodType: 'non_veg', taxCategoryId: 'tax-food', isActive: true, isBestseller: true, isChefsSpecial: false, spiceLevel: 2, prepTimeMinutes: 20, displayOrder: 1, tags: ['curry', 'signature'] },
-    { id: 'item-5', categoryId: 'cat-mains', outletId: outlet.id, name: 'Dal Makhani', description: 'Slow cooked black lentils with cream and butter.', shortCode: 'DMK', imageUrl: '/menu/dal-makhani.jpg', basePrice: 240, foodType: 'veg', taxCategoryId: 'tax-food', isActive: true, isBestseller: true, isChefsSpecial: false, spiceLevel: 1, prepTimeMinutes: 16, displayOrder: 2, tags: ['dal', 'comfort'] },
-    { id: 'item-6', categoryId: 'cat-mains', outletId: outlet.id, name: 'Kadhai Paneer', description: 'Paneer and peppers in a bold kadhai masala.', shortCode: 'KDP', imageUrl: '/menu/kadhai-paneer.jpg', basePrice: 290, foodType: 'veg', taxCategoryId: 'tax-food', isActive: true, isBestseller: false, isChefsSpecial: true, spiceLevel: 3, prepTimeMinutes: 18, displayOrder: 3, tags: ['paneer', 'spicy'] },
-    { id: 'item-7', categoryId: 'cat-rice', outletId: outlet.id, name: 'Chicken Biryani', description: 'Long grain dum biryani with salan and raita.', shortCode: 'CBY', imageUrl: '/menu/chicken-biryani.jpg', basePrice: 350, foodType: 'non_veg', taxCategoryId: 'tax-food', isActive: true, isBestseller: true, isChefsSpecial: false, spiceLevel: 3, prepTimeMinutes: 24, displayOrder: 1, tags: ['biryani', 'rice'] },
-    { id: 'item-8', categoryId: 'cat-rice', outletId: outlet.id, name: 'Veg Pulao', description: 'Fragrant basmati with seasonal vegetables.', shortCode: 'VPL', imageUrl: '/menu/veg-pulao.jpg', basePrice: 220, foodType: 'veg', taxCategoryId: 'tax-food', isActive: true, isBestseller: false, isChefsSpecial: false, spiceLevel: 1, prepTimeMinutes: 16, displayOrder: 2, tags: ['rice', 'veg'] },
-    { id: 'item-9', categoryId: 'cat-breads', outletId: outlet.id, name: 'Garlic Naan', description: 'Tandoor naan brushed with garlic butter.', shortCode: 'GN', imageUrl: '/menu/garlic-naan.jpg', basePrice: 60, foodType: 'veg', taxCategoryId: 'tax-food', isActive: true, isBestseller: true, isChefsSpecial: false, spiceLevel: 0, prepTimeMinutes: 8, displayOrder: 1, tags: ['bread', 'naan'] },
-    { id: 'item-10', categoryId: 'cat-breads', outletId: outlet.id, name: 'Butter Naan', description: 'Soft naan finished with white butter.', shortCode: 'BN', imageUrl: '/menu/butter-naan.jpg', basePrice: 50, foodType: 'veg', taxCategoryId: 'tax-food', isActive: true, isBestseller: true, isChefsSpecial: false, spiceLevel: 0, prepTimeMinutes: 8, displayOrder: 2, tags: ['bread', 'naan'] },
-    { id: 'item-11', categoryId: 'cat-breads', outletId: outlet.id, name: 'Tandoori Roti', description: 'Whole wheat roti from the tandoor.', shortCode: 'TRT', imageUrl: '/menu/roti.jpg', basePrice: 35, foodType: 'veg', taxCategoryId: 'tax-food', isActive: true, isBestseller: false, isChefsSpecial: false, spiceLevel: 0, prepTimeMinutes: 7, displayOrder: 3, tags: ['bread', 'roti'] },
-    { id: 'item-12', categoryId: 'cat-beverages', outletId: outlet.id, name: 'Sweet Lassi', description: 'Thick yogurt lassi finished with saffron.', shortCode: 'LAS', imageUrl: '/menu/lassi.jpg', basePrice: 80, foodType: 'veg', taxCategoryId: 'tax-bev', isActive: true, isBestseller: true, isChefsSpecial: false, spiceLevel: 0, prepTimeMinutes: 5, displayOrder: 1, tags: ['drink', 'lassi'] },
-    { id: 'item-13', categoryId: 'cat-beverages', outletId: outlet.id, name: 'Masala Chaas', description: 'Spiced buttermilk with roasted cumin.', shortCode: 'CHA', imageUrl: '/menu/chaas.jpg', basePrice: 65, foodType: 'veg', taxCategoryId: 'tax-bev', isActive: true, isBestseller: false, isChefsSpecial: false, spiceLevel: 0, prepTimeMinutes: 4, displayOrder: 2, tags: ['drink', 'chaas'] },
-    { id: 'item-14', categoryId: 'cat-desserts', outletId: outlet.id, name: 'Gulab Jamun', description: 'Warm gulab jamun with rose syrup.', shortCode: 'GJ', imageUrl: '/menu/gulab-jamun.jpg', basePrice: 90, foodType: 'veg', taxCategoryId: 'tax-food', isActive: true, isBestseller: true, isChefsSpecial: false, spiceLevel: 0, prepTimeMinutes: 4, displayOrder: 1, tags: ['dessert', 'sweet'] },
-    { id: 'item-15', categoryId: 'cat-desserts', outletId: outlet.id, name: 'Sizzling Brownie', description: 'Brownie on hot plate with vanilla ice cream.', shortCode: 'SBR', imageUrl: '/menu/sizzling-brownie.jpg', basePrice: 180, foodType: 'veg', taxCategoryId: 'tax-food', isActive: true, isBestseller: false, isChefsSpecial: true, spiceLevel: 0, prepTimeMinutes: 6, displayOrder: 2, tags: ['dessert', 'signature'] },
-    { id: 'item-16', categoryId: 'cat-combos', outletId: outlet.id, name: 'Family Feast Combo', description: 'Butter chicken, dal, biryani, naan and desserts for four.', shortCode: 'FFC', imageUrl: '/menu/family-feast.jpg', basePrice: 899, foodType: 'non_veg', taxCategoryId: 'tax-food', isActive: true, isBestseller: true, isChefsSpecial: true, spiceLevel: 2, prepTimeMinutes: 30, displayOrder: 1, tags: ['combo', 'family'] },
+    { id: 'item-1', categoryId: 'cat-starters', outletId: outlet.id, name: 'Paneer Tikka', description: 'Char-grilled cottage cheese with mint chutney.', shortCode: 'PTK', imageUrl: menuArtwork.starters, basePrice: 220, foodType: 'veg', taxCategoryId: 'tax-food', isActive: true, isBestseller: true, isChefsSpecial: false, spiceLevel: 2, prepTimeMinutes: 18, displayOrder: 1, tags: ['grilled', 'starter'] },
+    { id: 'item-2', categoryId: 'cat-starters', outletId: outlet.id, name: 'Chicken Tikka', description: 'Juicy tikka skewers finished in the tandoor.', shortCode: 'CTK', imageUrl: menuArtwork.starters, basePrice: 280, foodType: 'non_veg', taxCategoryId: 'tax-food', isActive: true, isBestseller: true, isChefsSpecial: false, spiceLevel: 3, prepTimeMinutes: 20, displayOrder: 2, tags: ['tandoor', 'starter'] },
+    { id: 'item-3', categoryId: 'cat-starters', outletId: outlet.id, name: 'Crispy Corn Chaat', description: 'Sweet corn tossed with chaat masala and herbs.', shortCode: 'CCC', imageUrl: menuArtwork.starters, basePrice: 180, foodType: 'veg', taxCategoryId: 'tax-food', isActive: true, isBestseller: false, isChefsSpecial: true, spiceLevel: 1, prepTimeMinutes: 12, displayOrder: 3, tags: ['chaat', 'snack'] },
+    { id: 'item-4', categoryId: 'cat-mains', outletId: outlet.id, name: 'Butter Chicken', description: 'Classic creamy tomato curry with smoky chicken.', shortCode: 'BCH', imageUrl: menuArtwork.mains, basePrice: 320, foodType: 'non_veg', taxCategoryId: 'tax-food', isActive: true, isBestseller: true, isChefsSpecial: false, spiceLevel: 2, prepTimeMinutes: 20, displayOrder: 1, tags: ['curry', 'signature'] },
+    { id: 'item-5', categoryId: 'cat-mains', outletId: outlet.id, name: 'Dal Makhani', description: 'Slow cooked black lentils with cream and butter.', shortCode: 'DMK', imageUrl: menuArtwork.mains, basePrice: 240, foodType: 'veg', taxCategoryId: 'tax-food', isActive: true, isBestseller: true, isChefsSpecial: false, spiceLevel: 1, prepTimeMinutes: 16, displayOrder: 2, tags: ['dal', 'comfort'] },
+    { id: 'item-6', categoryId: 'cat-mains', outletId: outlet.id, name: 'Kadhai Paneer', description: 'Paneer and peppers in a bold kadhai masala.', shortCode: 'KDP', imageUrl: menuArtwork.mains, basePrice: 290, foodType: 'veg', taxCategoryId: 'tax-food', isActive: true, isBestseller: false, isChefsSpecial: true, spiceLevel: 3, prepTimeMinutes: 18, displayOrder: 3, tags: ['paneer', 'spicy'] },
+    { id: 'item-7', categoryId: 'cat-rice', outletId: outlet.id, name: 'Chicken Biryani', description: 'Long grain dum biryani with salan and raita.', shortCode: 'CBY', imageUrl: menuArtwork.rice, basePrice: 350, foodType: 'non_veg', taxCategoryId: 'tax-food', isActive: true, isBestseller: true, isChefsSpecial: false, spiceLevel: 3, prepTimeMinutes: 24, displayOrder: 1, tags: ['biryani', 'rice'] },
+    { id: 'item-8', categoryId: 'cat-rice', outletId: outlet.id, name: 'Veg Pulao', description: 'Fragrant basmati with seasonal vegetables.', shortCode: 'VPL', imageUrl: menuArtwork.rice, basePrice: 220, foodType: 'veg', taxCategoryId: 'tax-food', isActive: true, isBestseller: false, isChefsSpecial: false, spiceLevel: 1, prepTimeMinutes: 16, displayOrder: 2, tags: ['rice', 'veg'] },
+    { id: 'item-9', categoryId: 'cat-breads', outletId: outlet.id, name: 'Garlic Naan', description: 'Tandoor naan brushed with garlic butter.', shortCode: 'GN', imageUrl: menuArtwork.breads, basePrice: 60, foodType: 'veg', taxCategoryId: 'tax-food', isActive: true, isBestseller: true, isChefsSpecial: false, spiceLevel: 0, prepTimeMinutes: 8, displayOrder: 1, tags: ['bread', 'naan'] },
+    { id: 'item-10', categoryId: 'cat-breads', outletId: outlet.id, name: 'Butter Naan', description: 'Soft naan finished with white butter.', shortCode: 'BN', imageUrl: menuArtwork.breads, basePrice: 50, foodType: 'veg', taxCategoryId: 'tax-food', isActive: true, isBestseller: true, isChefsSpecial: false, spiceLevel: 0, prepTimeMinutes: 8, displayOrder: 2, tags: ['bread', 'naan'] },
+    { id: 'item-11', categoryId: 'cat-breads', outletId: outlet.id, name: 'Tandoori Roti', description: 'Whole wheat roti from the tandoor.', shortCode: 'TRT', imageUrl: menuArtwork.breads, basePrice: 35, foodType: 'veg', taxCategoryId: 'tax-food', isActive: true, isBestseller: false, isChefsSpecial: false, spiceLevel: 0, prepTimeMinutes: 7, displayOrder: 3, tags: ['bread', 'roti'] },
+    { id: 'item-12', categoryId: 'cat-beverages', outletId: outlet.id, name: 'Sweet Lassi', description: 'Thick yogurt lassi finished with saffron.', shortCode: 'LAS', imageUrl: menuArtwork.beverages, basePrice: 80, foodType: 'veg', taxCategoryId: 'tax-bev', isActive: true, isBestseller: true, isChefsSpecial: false, spiceLevel: 0, prepTimeMinutes: 5, displayOrder: 1, tags: ['drink', 'lassi'] },
+    { id: 'item-13', categoryId: 'cat-beverages', outletId: outlet.id, name: 'Masala Chaas', description: 'Spiced buttermilk with roasted cumin.', shortCode: 'CHA', imageUrl: menuArtwork.beverages, basePrice: 65, foodType: 'veg', taxCategoryId: 'tax-bev', isActive: true, isBestseller: false, isChefsSpecial: false, spiceLevel: 0, prepTimeMinutes: 4, displayOrder: 2, tags: ['drink', 'chaas'] },
+    { id: 'item-14', categoryId: 'cat-desserts', outletId: outlet.id, name: 'Gulab Jamun', description: 'Warm gulab jamun with rose syrup.', shortCode: 'GJ', imageUrl: menuArtwork.desserts, basePrice: 90, foodType: 'veg', taxCategoryId: 'tax-food', isActive: true, isBestseller: true, isChefsSpecial: false, spiceLevel: 0, prepTimeMinutes: 4, displayOrder: 1, tags: ['dessert', 'sweet'] },
+    { id: 'item-15', categoryId: 'cat-desserts', outletId: outlet.id, name: 'Sizzling Brownie', description: 'Brownie on hot plate with vanilla ice cream.', shortCode: 'SBR', imageUrl: menuArtwork.desserts, basePrice: 180, foodType: 'veg', taxCategoryId: 'tax-food', isActive: true, isBestseller: false, isChefsSpecial: true, spiceLevel: 0, prepTimeMinutes: 6, displayOrder: 2, tags: ['dessert', 'signature'] },
+    { id: 'item-16', categoryId: 'cat-combos', outletId: outlet.id, name: 'Family Feast Combo', description: 'Butter chicken, dal, biryani, naan and desserts for four.', shortCode: 'FFC', imageUrl: menuArtwork.combos, basePrice: 899, foodType: 'non_veg', taxCategoryId: 'tax-food', isActive: true, isBestseller: true, isChefsSpecial: true, spiceLevel: 2, prepTimeMinutes: 30, displayOrder: 1, tags: ['combo', 'family'] },
   ];
   await db.insert(schema.menuItems).values(menuItemsData);
 
@@ -300,6 +335,7 @@ async function seed() {
   const orderItemModifiersData: Array<typeof schema.orderItemModifiers.$inferInsert> = [];
   const kotsData: Array<typeof schema.kots.$inferInsert> = [];
   const kotItemsData: Array<typeof schema.kotItems.$inferInsert> = [];
+  const paymentAttemptsData: Array<typeof schema.paymentAttempts.$inferInsert> = [];
   const paymentsData: Array<typeof schema.payments.$inferInsert> = [];
   const paymentSplitsData: Array<typeof schema.paymentSplits.$inferInsert> = [];
   const loyaltyTransactionsData: Array<typeof schema.loyaltyTransactions.$inferInsert> = [];
@@ -460,7 +496,26 @@ async function seed() {
     }
 
     if (spec.status === 'paid') {
+      const paymentAttemptId = `${spec.id}-attempt`;
       const paymentId = `${spec.id}-payment`;
+
+      paymentAttemptsData.push({
+        id: paymentAttemptId,
+        outletId: outlet.id,
+        orderId: spec.id,
+        cashierId: CASHIER_ID,
+        provider: 'manual',
+        paymentMethod: spec.paymentMethod ?? 'cash',
+        status: 'succeeded',
+        amount: totalAmount,
+        currency: outlet.currency ?? 'INR',
+        reference: spec.paymentReference ?? null,
+        transactionId: spec.transactionId ?? null,
+        metadata: { seeded: true },
+        completedAt: shiftMinutes(createdAt, 36),
+        createdAt: shiftMinutes(createdAt, 34),
+        updatedAt: shiftMinutes(createdAt, 36),
+      });
 
       paymentsData.push({
         id: paymentId,
@@ -511,6 +566,7 @@ async function seed() {
   await db.insert(schema.orderItemModifiers).values(orderItemModifiersData);
   await db.insert(schema.kots).values(kotsData);
   await db.insert(schema.kotItems).values(kotItemsData);
+  await db.insert(schema.paymentAttempts).values(paymentAttemptsData);
   await db.insert(schema.payments).values(paymentsData);
   await db.insert(schema.paymentSplits).values(paymentSplitsData);
   await db.insert(schema.loyaltyTransactions).values(loyaltyTransactionsData);

@@ -3,50 +3,50 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --background: #f4f7fa;
-  --foreground: #0f172a;
+  --background: #fff7ef;
+  --foreground: #24150f;
 
-  --card: #ffffff;
-  --card-foreground: #0f172a;
-  --popover: #ffffff;
-  --popover-foreground: #0f172a;
+  --card: #fffaf6;
+  --card-foreground: #24150f;
+  --popover: #fffaf6;
+  --popover-foreground: #24150f;
 
-  --surface: #ffffff;
-  --surface-variant: #edf2f7;
-  --surface-container: #f8fafc;
-  --surface-container-high: #ffffff;
-  --surface-container-highest: #ffffff;
+  --surface: #fffaf6;
+  --surface-variant: #f6e9de;
+  --surface-container: #fbefe6;
+  --surface-container-high: #fff4ed;
+  --surface-container-highest: #fffdfb;
 
-  --primary: #ff4d00;
-  --primary-foreground: #1f130b;
-  --primary-dark: #e64500;
-  --primary-light: #fff0e6;
-  --primary-strong: #cc3e00;
+  --primary: #a64218;
+  --primary-foreground: #fff8f4;
+  --primary-dark: #7d2c0a;
+  --primary-light: #ffd8c5;
+  --primary-strong: #8c340c;
 
-  --secondary: #1e293b;
-  --secondary-foreground: #f8fafc;
-  --tertiary: #38b2ac;
-  --tertiary-foreground: #062c2a;
+  --secondary: #6a4a38;
+  --secondary-foreground: #fff7f2;
+  --tertiary: #3d6e63;
+  --tertiary-foreground: #f2fffb;
 
-  --muted: #eef2f6;
-  --muted-foreground: #64748b;
-  --accent: #dff7f4;
-  --accent-foreground: #0f5c57;
+  --muted: #f3e6dc;
+  --muted-foreground: #7d675a;
+  --accent: #ffe6b8;
+  --accent-foreground: #7a4706;
 
   --destructive: #ef4444;
   --destructive-foreground: #fff5f5;
-  --success: #10b981;
-  --warning: #f59e0b;
+  --success: #177a54;
+  --warning: #ca7a00;
   --error: #ef4444;
-  --info: #3b82f6;
+  --info: #2563eb;
 
-  --border: #e2e8f0;
-  --input: #cbd5e1;
-  --ring: #ff6b35;
+  --border: #e2cfbf;
+  --input: #d9c3b2;
+  --ring: #cb6025;
 
-  --text-primary: #0f172a;
-  --text-secondary: #64748b;
-  --text-muted: #94a3b8;
+  --text-primary: #24150f;
+  --text-secondary: #71584b;
+  --text-muted: #9d8577;
 
   --radius-compact: 10px;
   --radius-medium: 16px;
@@ -60,71 +60,72 @@
   --radius-2xl: var(--radius-xxl);
   --radius: var(--radius-large);
 
-  --shadow-elevation-1: 0 1px 2px rgba(15, 23, 42, 0.05), 0 10px 24px rgba(15, 23, 42, 0.04);
-  --shadow-elevation-2: 0 12px 30px rgba(15, 23, 42, 0.08), 0 4px 14px rgba(255, 77, 0, 0.08);
-  --shadow-elevation-3: 0 24px 60px rgba(15, 23, 42, 0.14), 0 10px 24px rgba(255, 77, 0, 0.1);
-  --shadow-brand: 0 18px 40px rgba(255, 77, 0, 0.18);
-  --shadow-focus: 0 0 0 4px rgba(255, 107, 53, 0.2);
+  --shadow-elevation-1: 0 1px 2px rgba(36, 21, 15, 0.05), 0 10px 24px rgba(36, 21, 15, 0.05);
+  --shadow-elevation-2: 0 14px 34px rgba(36, 21, 15, 0.08), 0 5px 18px rgba(166, 66, 24, 0.1);
+  --shadow-elevation-3: 0 28px 70px rgba(36, 21, 15, 0.14), 0 12px 28px rgba(166, 66, 24, 0.12);
+  --shadow-brand: 0 22px 48px rgba(166, 66, 24, 0.2);
+  --shadow-focus: 0 0 0 4px rgba(203, 96, 37, 0.18);
   --shadow-sm: var(--shadow-elevation-1);
   --shadow-md: var(--shadow-elevation-2);
   --shadow-lg: var(--shadow-elevation-3);
 
   --font-sans: var(--font-bhukkad-sans);
   --font-display: var(--font-bhukkad-display);
+  --font-script: var(--font-bhukkad-script);
   color-scheme: light;
 }
 
 .dark {
-  --background: #0f1117;
-  --foreground: #f8fafc;
+  --background: #1a100c;
+  --foreground: #f7e5d7;
 
-  --card: #161b22;
-  --card-foreground: #f8fafc;
-  --popover: #161b22;
-  --popover-foreground: #f8fafc;
+  --card: #241611;
+  --card-foreground: #f7e5d7;
+  --popover: #241611;
+  --popover-foreground: #f7e5d7;
 
-  --surface: #161b22;
-  --surface-variant: #1f2937;
-  --surface-container: #182130;
-  --surface-container-high: #1e293b;
-  --surface-container-highest: #243244;
+  --surface: #241611;
+  --surface-variant: #34211a;
+  --surface-container: #2b1a14;
+  --surface-container-high: #34221a;
+  --surface-container-highest: #3d281f;
 
-  --primary: #ff7a33;
-  --primary-foreground: #2e1200;
-  --primary-dark: #ffb089;
-  --primary-light: #7a2e0c;
-  --primary-strong: #ffd0b5;
+  --primary: #ffb58b;
+  --primary-foreground: #4a1800;
+  --primary-dark: #ffd9c4;
+  --primary-light: #6f2b0d;
+  --primary-strong: #ffe5d6;
 
-  --secondary: #cbd5e1;
-  --secondary-foreground: #0f172a;
-  --tertiary: #4fd1c5;
-  --tertiary-foreground: #042f2e;
+  --secondary: #e2c1ad;
+  --secondary-foreground: #3b2418;
+  --tertiary: #91d6c7;
+  --tertiary-foreground: #123c35;
 
-  --muted: #1f2937;
-  --muted-foreground: #94a3b8;
-  --accent: #134e4a;
-  --accent-foreground: #ccfbf1;
+  --muted: #39251d;
+  --muted-foreground: #c7ab9a;
+  --accent: #5c3f16;
+  --accent-foreground: #ffe6b8;
 
   --destructive: #f87171;
   --destructive-foreground: #450a0a;
-  --success: #34d399;
-  --warning: #fbbf24;
+  --success: #55d39f;
+  --warning: #ffc75a;
   --error: #f87171;
-  --info: #60a5fa;
+  --info: #8db6ff;
 
-  --border: #334155;
-  --input: #334155;
-  --ring: #ff7a33;
+  --border: #5a4034;
+  --input: #5a4034;
+  --ring: #ff9a63;
 
-  --text-primary: #f8fafc;
-  --text-secondary: #cbd5e1;
-  --text-muted: #94a3b8;
+  --text-primary: #f7e5d7;
+  --text-secondary: #ddc0af;
+  --text-muted: #b89581;
 
-  --shadow-elevation-1: 0 1px 2px rgba(0, 0, 0, 0.32), 0 10px 24px rgba(0, 0, 0, 0.18);
-  --shadow-elevation-2: 0 14px 34px rgba(0, 0, 0, 0.34), 0 4px 14px rgba(255, 122, 51, 0.08);
-  --shadow-elevation-3: 0 24px 60px rgba(0, 0, 0, 0.46), 0 12px 22px rgba(255, 122, 51, 0.1);
-  --shadow-brand: 0 18px 44px rgba(255, 122, 51, 0.18);
-  --shadow-focus: 0 0 0 4px rgba(255, 122, 51, 0.18);
+  --shadow-elevation-1: 0 1px 2px rgba(0, 0, 0, 0.34), 0 10px 24px rgba(0, 0, 0, 0.2);
+  --shadow-elevation-2: 0 16px 38px rgba(0, 0, 0, 0.36), 0 6px 18px rgba(255, 181, 139, 0.08);
+  --shadow-elevation-3: 0 28px 74px rgba(0, 0, 0, 0.46), 0 14px 28px rgba(255, 181, 139, 0.1);
+  --shadow-brand: 0 22px 52px rgba(255, 181, 139, 0.16);
+  --shadow-focus: 0 0 0 4px rgba(255, 154, 99, 0.16);
   --shadow-sm: var(--shadow-elevation-1);
   --shadow-md: var(--shadow-elevation-2);
   --shadow-lg: var(--shadow-elevation-3);
@@ -169,6 +170,7 @@
   --color-text-muted: var(--text-muted);
   --font-sans: var(--font-sans);
   --font-display: var(--font-display);
+  --font-script: var(--font-script);
 }
 
 * {
@@ -182,8 +184,9 @@ html {
 body {
   min-height: 100vh;
   background:
-    radial-gradient(circle at top left, color-mix(in srgb, var(--primary) 10%, transparent) 0, transparent 36%),
-    radial-gradient(circle at top right, color-mix(in srgb, var(--tertiary) 10%, transparent) 0, transparent 30%),
+    radial-gradient(circle at 12% 0%, color-mix(in srgb, var(--primary) 14%, transparent) 0, transparent 34%),
+    radial-gradient(circle at 88% 2%, color-mix(in srgb, var(--accent) 16%, transparent) 0, transparent 26%),
+    radial-gradient(circle at 100% 22%, color-mix(in srgb, var(--tertiary) 10%, transparent) 0, transparent 24%),
     var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), sans-serif;
@@ -196,16 +199,22 @@ body {
 }
 
 .surface-shell {
-  background: color-mix(in srgb, var(--surface-container-highest) 94%, var(--background));
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--surface-container-highest) 96%, var(--background)) 0%,
+      color-mix(in srgb, var(--surface-container-high) 92%, var(--background)) 100%
+    );
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   box-shadow: var(--shadow-elevation-1);
 }
 
 .app-canvas {
   background:
-    radial-gradient(circle at top left, color-mix(in srgb, var(--primary) 12%, transparent) 0, transparent 36%),
-    radial-gradient(circle at top right, color-mix(in srgb, var(--tertiary) 12%, transparent) 0, transparent 28%),
+    radial-gradient(circle at top left, color-mix(in srgb, var(--primary) 15%, transparent) 0, transparent 34%),
+    radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 14%, transparent) 0, transparent 24%),
+    radial-gradient(circle at right center, color-mix(in srgb, var(--tertiary) 12%, transparent) 0, transparent 26%),
     linear-gradient(180deg, color-mix(in srgb, var(--surface-container-highest) 88%, transparent) 0%, transparent 100%);
 }
 
@@ -223,8 +232,9 @@ body {
 
 .app-hero-glow {
   background:
-    radial-gradient(circle at top left, color-mix(in srgb, var(--primary) 12%, transparent) 0, transparent 38%),
-    radial-gradient(circle at top right, color-mix(in srgb, var(--tertiary) 10%, transparent) 0, transparent 30%),
+    radial-gradient(circle at top left, color-mix(in srgb, var(--primary) 16%, transparent) 0, transparent 38%),
+    radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 18%, transparent) 0, transparent 28%),
+    radial-gradient(circle at right center, color-mix(in srgb, var(--tertiary) 11%, transparent) 0, transparent 26%),
     linear-gradient(
       135deg,
       color-mix(in srgb, var(--surface-container-highest) 98%, var(--surface)) 0%,
@@ -235,4 +245,9 @@ body {
 .brand-display {
   font-family: var(--font-display), sans-serif;
   letter-spacing: -0.04em;
+}
+
+.brand-script {
+  font-family: var(--font-script), var(--font-display), sans-serif;
+  letter-spacing: -0.02em;
 }

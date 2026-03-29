@@ -88,6 +88,10 @@ export interface Table {
   positionY: number;
   width: number;
   height: number;
+  currentOrderId?: string | null;
+  activeGuestCount?: number;
+  activeOrderTotal?: number;
+  occupiedSince?: string | null;
 }
 
 export interface Customer {
@@ -139,6 +143,7 @@ export interface Order {
   paxCount: number;
   subtotal: number;
   taxAmount: number;
+  serviceCharge: number;
   discountAmount: number;
   totalAmount: number;
   items: OrderItem[];
@@ -154,17 +159,90 @@ export interface Kot {
   items: any[];
 }
 
-export type TabletLanguageCode = 'en' | 'hi';
+export type TabletLanguageCode =
+  | 'en'
+  | 'hi'
+  | 'bn'
+  | 'mr'
+  | 'ta'
+  | 'te'
+  | 'gu'
+  | 'kn'
+  | 'ml'
+  | 'pa';
+
+export type OutletBusinessType =
+  | 'restaurant'
+  | 'cafe'
+  | 'hotel'
+  | 'cloud_kitchen'
+  | 'sweet_shop'
+  | 'bakery';
+
+export type DeliveryPartnerCode =
+  | 'swiggy'
+  | 'zomato'
+  | 'ondc'
+  | 'uber_eats'
+  | 'deliveroo'
+  | 'kareems';
+
+export interface DeliveryPartnerCompatibility {
+  enabled: boolean;
+  orderInjectionMode: 'manual' | 'api' | 'aggregator';
+  supportsMenuSync: boolean;
+  supportsOrderPush: boolean;
+  supportsStatusSync: boolean;
+  supportsStoreHoursSync: boolean;
+  notes?: string;
+}
+
+export type PaymentProviderCode = 'manual' | 'stripe' | 'razorpay';
+
+export type PaymentProviderMode = 'sandbox' | 'live';
+
+export type PaymentMethodCode = 'cash' | 'card' | 'upi' | 'wallet' | 'complimentary';
+
+export type PaymentAttemptStatus =
+  | 'created'
+  | 'requires_action'
+  | 'processing'
+  | 'succeeded'
+  | 'failed'
+  | 'cancelled';
+
+export interface PaymentProviderSettings {
+  enabled: boolean;
+  mode: PaymentProviderMode;
+  displayName: string;
+  supportedMethods: PaymentMethodCode[];
+  publishableKey?: string | null;
+  keyId?: string | null;
+}
+
+export interface PaymentSettings {
+  defaultProvider: PaymentProviderCode;
+  providers: Record<PaymentProviderCode, PaymentProviderSettings>;
+}
 
 export interface TabletOrderingSettings {
   taxRate: number;
   serviceCharge: number;
+  applyTaxOnServiceCharge: boolean;
+  roundOffStrategy: 'none' | 'nearest_rupee';
   printReceiptAutomatically: boolean;
   enableKDS: boolean;
   enableOnlineOrders: boolean;
   enableTabletOrdering: boolean;
   enableQrOrdering: boolean;
+  enableReservations: boolean;
+  enableTokenQueue: boolean;
   defaultTabletLanguage: TabletLanguageCode;
+  supportedTabletLanguages: TabletLanguageCode[];
+  businessType: OutletBusinessType;
+  serviceModes: Array<Order['orderType']>;
+  payments: PaymentSettings;
+  integrations: Record<DeliveryPartnerCode, DeliveryPartnerCompatibility>;
 }
 
 export interface TabletTableSummary {
@@ -194,6 +272,9 @@ export interface TabletOrderingBootstrap {
     name: string;
     logoUrl?: string | null;
     currency: string;
+    timezone?: string;
+    gstin?: string | null;
+    fssaiNumber?: string | null;
   };
   table: TabletTableSummary;
   settings: TabletOrderingSettings;

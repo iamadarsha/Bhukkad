@@ -37,13 +37,15 @@ More detail lives in [docs/TECH_STACK.md](docs/TECH_STACK.md).
    `npm install`
 2. Create a local env file:
    `cp .env.example .env.local`
-3. Update `.env.local` with at least a real `AUTH_SECRET`.
+3. Update `.env.local` with at least a real `AUTH_SECRET`. Leave `APP_DEMO_MODE=false` unless you intentionally want the local demo-mode bypass.
 4. Initialize the database and seed demo data:
    `npm run db:setup`
 5. Start the development server:
    `npm run dev`
 
 The app runs on [http://localhost:3000](http://localhost:3000).
+
+`npm run db:setup` now rebuilds the target SQLite database from scratch before reseeding it. Use `npm run db:push` instead when you need to preserve existing local data, or set `SQLITE_DB_PATH` to point setup/build commands at an isolated verification database.
 
 ## Demo Access
 
@@ -65,11 +67,13 @@ These are seeded demo credentials only. Rotate or replace them before any real d
 - `npm run dev` - start the custom Next.js + Socket.IO development server via `tsx server.ts`
 - `npm run build` - build the Next.js app and compile `server.ts` into `dist/server.js`
 - `npm run start` - run the production server from `dist/server.js`
+- `npm run start:render` - Render-safe startup that applies schema updates, seeds once when the SQLite database is empty, then boots the production server
 - `npm run lint` - run ESLint
 - `npm run clean` - clear Next.js build artifacts
-- `npm run db:push` - push the Drizzle schema to `sqlite.db`
+- `npm run db:reset` - remove the target SQLite file plus WAL/SHM sidecars before a clean rebuild
+- `npm run db:push` - push the Drizzle schema to the configured SQLite target without resetting existing data
 - `npm run db:seed` - reseed the demo database
-- `npm run db:setup` - schema push plus demo seed
+- `npm run db:setup` - rebuild the target SQLite database from scratch, then push schema and reseed demo data
 - `npm run db:studio` - open Drizzle Studio
 
 ## Environment
@@ -80,10 +84,39 @@ Core variables:
 
 - `APP_URL` - canonical app URL and Socket fallback origin
 - `AUTH_SECRET` - NextAuth signing secret
-- `NEXT_PUBLIC_GEMINI_API_KEY` - optional client-side Gemini integration
+- `APP_DEMO_MODE` - explicit local-only demo-mode bypass toggle; keep `false` for normal and production environments
+- `GEMINI_API_KEY` - optional server-side Gemini integration for the AI helper flows
 - `HOSTNAME` - host binding for the custom Node server
 - `PORT` - port for the custom Node server
 - `SOCKET_ALLOWED_ORIGINS` - comma-separated Socket.IO CORS origins
+- `SQLITE_DB_PATH` - optional override for the SQLite database path used by setup, build, and local verification commands
+
+## Deploying To Render
+
+This repo now includes a [render.yaml](render.yaml) blueprint for a single Render web service.
+
+### Recommended flow
+
+1. Push this repository to GitHub.
+2. In Render, create a new Blueprint service from the repo.
+3. Set these required environment variables before the first deploy:
+   - `AUTH_SECRET` - long random secret for NextAuth
+   - `APP_URL` - your Render app URL, for example `https://bhukkad.onrender.com`
+   - `SOCKET_ALLOWED_ORIGINS` - set this to the same public URL as `APP_URL`
+4. Deploy. Render will run `npm ci && npm run build`, then boot with `npm run start:render`.
+
+### What the Render boot flow does
+
+- Runs `npm run db:push` on startup so the SQLite schema exists before the server comes up
+- Seeds demo data only when the target SQLite database is empty
+- Leaves existing data alone on later restarts
+
+### Demo caveats on Render
+
+- The current app uses local SQLite plus `public/uploads`, so a free Render web service is suitable for demos but not durable production storage.
+- With the default blueprint, `SQLITE_DB_PATH` points at `./sqlite.db`, which lives on the service filesystem.
+- If you attach a persistent disk on a paid plan, override `SQLITE_DB_PATH` to a mounted path such as `/var/data/sqlite.db`.
+- Uploads are still written to `public/uploads`, so uploaded files remain ephemeral until they are moved to object storage or another persistent path.
 
 ## Project Structure
 
@@ -123,6 +156,6 @@ If the task is to recreate Bhukkad exactly, start with `docs/RECREATION_GUIDE.md
 
 - The app uses a custom `server.ts`, so development and production should go through the npm scripts instead of raw `next dev`.
 - `/api` routes are not protected by middleware; they enforce auth inside each route handler with `auth()`.
-- The app stores state locally in `sqlite.db` and writes uploads to `public/uploads`.
+- The app stores state locally in `sqlite.db` by default, supports `SQLITE_DB_PATH` overrides for isolated runs, and writes uploads to `public/uploads`.
 - Realtime behavior depends on Socket.IO rooms for outlet, kitchen, POS, and table updates.
 - Seed data also installs sample avatars, menu imagery, and realistic restaurant records for local demos.

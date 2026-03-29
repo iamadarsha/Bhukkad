@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer, real, blob } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, integer, real } from 'drizzle-orm/sqlite-core';
 import { sql } from 'drizzle-orm';
 
 export const users = sqliteTable('users', {
@@ -264,6 +264,32 @@ export const payments = sqliteTable('payments', {
   createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`),
 });
 
+export const paymentAttempts = sqliteTable('payment_attempts', {
+  id: text('id').primaryKey(),
+  outletId: text('outlet_id').references(() => outlets.id),
+  orderId: text('order_id').references(() => orders.id),
+  cashierId: text('cashier_id').references(() => users.id),
+  provider: text('provider').notNull(),
+  paymentMethod: text('payment_method').notNull(),
+  status: text('status').default('created'),
+  amount: real('amount').notNull(),
+  currency: text('currency').default('INR'),
+  reference: text('reference'),
+  transactionId: text('transaction_id'),
+  providerOrderId: text('provider_order_id'),
+  providerPaymentId: text('provider_payment_id'),
+  providerSignature: text('provider_signature'),
+  providerSessionId: text('provider_session_id'),
+  requestPayload: text('request_payload', { mode: 'json' }),
+  responsePayload: text('response_payload', { mode: 'json' }),
+  metadata: text('metadata', { mode: 'json' }),
+  errorCode: text('error_code'),
+  errorMessage: text('error_message'),
+  completedAt: text('completed_at'),
+  createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text('updated_at').default(sql`CURRENT_TIMESTAMP`),
+});
+
 export const paymentSplits = sqliteTable('payment_splits', {
   id: text('id').primaryKey(),
   paymentId: text('payment_id').references(() => payments.id),
@@ -456,6 +482,13 @@ export const menuItemsRelations = relations(menuItems, ({ many, one }) => ({
   modifierGroups: many(itemModifierGroups),
 }));
 
+export const menuItemVariantsRelations = relations(menuItemVariants, ({ one }) => ({
+  item: one(menuItems, {
+    fields: [menuItemVariants.itemId],
+    references: [menuItems.id],
+  }),
+}));
+
 export const itemModifierGroupsRelations = relations(itemModifierGroups, ({ one }) => ({
   item: one(menuItems, {
     fields: [itemModifierGroups.itemId],
@@ -470,6 +503,8 @@ export const itemModifierGroupsRelations = relations(itemModifierGroups, ({ one 
 export const ordersRelations = relations(orders, ({ many, one }) => ({
   items: many(orderItems),
   kots: many(kots),
+  payments: many(payments),
+  paymentAttempts: many(paymentAttempts),
   table: one(tables, {
     fields: [orders.tableId],
     references: [tables.id],
@@ -504,6 +539,40 @@ export const kotItemsRelations = relations(kotItems, ({ one }) => ({
   orderItem: one(orderItems, {
     fields: [kotItems.orderItemId],
     references: [orderItems.id],
+  }),
+}));
+
+export const paymentsRelations = relations(payments, ({ many, one }) => ({
+  order: one(orders, {
+    fields: [payments.orderId],
+    references: [orders.id],
+  }),
+  cashier: one(users, {
+    fields: [payments.cashierId],
+    references: [users.id],
+  }),
+  splits: many(paymentSplits),
+}));
+
+export const paymentSplitsRelations = relations(paymentSplits, ({ one }) => ({
+  payment: one(payments, {
+    fields: [paymentSplits.paymentId],
+    references: [payments.id],
+  }),
+}));
+
+export const paymentAttemptsRelations = relations(paymentAttempts, ({ one }) => ({
+  order: one(orders, {
+    fields: [paymentAttempts.orderId],
+    references: [orders.id],
+  }),
+  outlet: one(outlets, {
+    fields: [paymentAttempts.outletId],
+    references: [outlets.id],
+  }),
+  cashier: one(users, {
+    fields: [paymentAttempts.cashierId],
+    references: [users.id],
   }),
 }));
 

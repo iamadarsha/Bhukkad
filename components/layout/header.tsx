@@ -37,7 +37,7 @@ export function Header() {
         </Link>
         <div className="hidden xl:flex xl:flex-col">
           <span className="text-[10px] font-black uppercase tracking-[0.24em] text-muted-foreground">
-            Bhukkad Ops
+            भुक्कड़ Ops
           </span>
           <div className="mt-1">
             <Breadcrumb />

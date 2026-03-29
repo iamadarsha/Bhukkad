@@ -13,6 +13,8 @@ npm run dev
 
 Open `http://localhost:3000` and log in with one of the seeded demo accounts from `README.md`.
 
+`npm run db:setup` is a destructive local bootstrap command: it removes the target SQLite database file, reapplies the schema, and reseeds demo data. Use `npm run db:push` when you want to keep the current local dataset intact.
+
 ## Standard Verification
 
 Minimum verification after code changes:
@@ -40,9 +42,9 @@ Use this when editing `db/schema.ts`.
 
 1. Update the schema.
 2. Update `db/seed.ts` if the local demo needs the new fields.
-3. Apply the schema:
+3. Apply the schema without wiping local data:
    `npm run db:push`
-4. If the seed assumptions changed, rebuild local state:
+4. If the seed assumptions changed, rebuild local state from scratch:
    `npm run db:setup`
 5. Update related route handlers and UI.
 6. Update `docs/DATABASE_SCHEMA.md`.
@@ -151,5 +153,6 @@ If you change any of the following, update docs in the same branch:
 
 - `middleware.ts` does not protect `/api`.
 - `server.ts` is the real runtime entrypoint.
-- `sqlite.db` is mutable local state and can drift between sessions.
+- `npm run db:setup` intentionally recreates the local SQLite target; use `npm run db:push` for non-destructive schema updates.
+- `SQLITE_DB_PATH` lets you point setup or build commands at an isolated verification database.
 - File uploads persist in `public/uploads`, so cleanup may be manual.
