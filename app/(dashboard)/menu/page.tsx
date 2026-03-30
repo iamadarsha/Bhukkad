@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Category, MenuItem } from "@/types";
 import { apiClient } from "@/lib/api-client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Plus, Edit, Trash2, MoreVertical, Filter, Loader2, Utensils, UtensilsCrossed } from "lucide-react";
+import { Search, Plus, Edit, MoreVertical, Loader2, Utensils } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatCurrency } from "@/lib/utils/currency";
 import { toast } from "sonner";
@@ -37,6 +37,11 @@ export default function MenuPage() {
   useEffect(() => {
     loadData();
   }, []);
+
+  const categoryMap = useMemo(
+    () => new Map(categories.map((category) => [category.id, category])),
+    [categories],
+  );
 
   const filteredItems = items.filter(item => 
     item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -113,52 +118,72 @@ export default function MenuPage() {
 
             <TabsContent value="items" className="mt-0">
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {filteredItems.map(item => (
-                  <Card
-                    key={item.id}
-                    className="group overflow-hidden border-border/70 bg-card/95 shadow-[var(--shadow-elevation-1)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--shadow-elevation-2)]"
-                  >
-                    <CardContent className="p-0">
-                      <div className="p-4 flex items-start justify-between">
-                        <div className="flex gap-3">
-                          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary-light text-primary shadow-[var(--shadow-elevation-1)]">
-                            <UtensilsCrossed className="w-6 h-6" />
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-2 mb-0.5">
-                              <div className={`w-2 h-2 rounded-full ${item.foodType === 'veg' ? 'bg-success' : 'bg-error'}`} />
-                              <h3 className="font-bold leading-tight text-text-primary">{item.name}</h3>
+                {filteredItems.map(item => {
+                  const category = categoryMap.get(item.categoryId);
+
+                  return (
+                    <Card
+                      key={item.id}
+                      className="group overflow-hidden border-border/70 bg-card/95 shadow-[var(--shadow-elevation-1)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[var(--shadow-elevation-2)]"
+                    >
+                      <CardContent className="p-4">
+                        <div className="mb-4 flex items-start justify-between gap-3">
+                          <div className="min-w-0 space-y-2">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <div className="inline-flex items-center gap-2 rounded-full bg-muted px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-text-secondary shadow-sm">
+                                <span
+                                  className={`h-2.5 w-2.5 rounded-full ${
+                                    item.foodType === "veg" ? "bg-success" : "bg-error"
+                                  }`}
+                                />
+                                {category?.name || "Uncategorized"}
+                              </div>
+                              {item.isBestseller ? (
+                                <div className="rounded-full bg-warning px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-secondary-foreground shadow-sm">
+                                  Bestseller
+                                </div>
+                              ) : null}
+                              {item.prepTimeMinutes ? (
+                                <div className="rounded-full border border-border/70 bg-background px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
+                                  {item.prepTimeMinutes} min
+                                </div>
+                              ) : null}
                             </div>
+                            <h3 className="font-bold leading-tight text-text-primary">
+                              {item.name}
+                            </h3>
                             <p className="text-[10px] font-bold uppercase tracking-wider text-text-muted">
-                              {categories.find(c => c.id === item.categoryId)?.name || 'Uncategorized'}
+                              {item.shortCode || "Menu Item"}
                             </p>
                           </div>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 rounded-full opacity-0 transition-opacity hover:bg-accent/70 group-hover:opacity-100"
-                        >
-                          <MoreVertical className="w-4 h-4" />
-                        </Button>
-                      </div>
-
-                      <div className="px-4 pb-4 flex items-center justify-between">
-                        <span className="font-black text-primary-dark">{formatCurrency(item.basePrice)}</span>
-                        {item.isActive ? (
-                          <Badge className="text-[10px] font-bold uppercase">Active</Badge>
-                        ) : (
-                          <Badge
-                            variant="outline"
-                            className="border-border/70 bg-muted/70 text-[10px] font-bold uppercase text-text-secondary"
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 rounded-full opacity-0 transition-opacity hover:bg-accent/70 group-hover:opacity-100"
                           >
-                            Inactive
-                          </Badge>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                            <MoreVertical className="w-4 h-4" />
+                          </Button>
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                          <span className="font-black text-primary-dark">
+                            {formatCurrency(item.basePrice)}
+                          </span>
+                          {item.isActive ? (
+                            <Badge className="text-[10px] font-bold uppercase">Active</Badge>
+                          ) : (
+                            <Badge
+                              variant="outline"
+                              className="border-border/70 bg-muted/70 text-[10px] font-bold uppercase text-text-secondary"
+                            >
+                              Inactive
+                            </Badge>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
             </TabsContent>
 

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -12,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Loader2, Image as ImageIcon, X } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { apiClient } from "@/lib/api-client";
 import { Category } from "@/types";
 
@@ -42,9 +41,6 @@ interface MenuItemModalProps {
 
 export function MenuItemModal({ isOpen, onClose, item, categories, onSuccess }: MenuItemModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [imageUrl, setImageUrl] = useState<string | null>(item?.imageUrl || null);
-  const [isUploading, setIsUploading] = useState(false);
-  const [imageLoadError, setImageLoadError] = useState(false);
 
   const {
     register,
@@ -83,51 +79,15 @@ export function MenuItemModal({ isOpen, onClose, item, categories, onSuccess }: 
         isActive: item.isActive,
         isBestseller: item.isBestseller || false,
       });
-      setImageUrl(item.imageUrl || null);
-      setImageLoadError(false);
     } else if (isOpen) {
       reset();
-      setImageUrl(null);
-      setImageLoadError(false);
     }
   }, [item, isOpen, reset]);
-
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error("Image must be less than 2MB");
-      return;
-    }
-
-    setIsUploading(true);
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!res.ok) throw new Error("Upload failed");
-
-      const data = await res.json();
-      setImageUrl(data.url);
-      setImageLoadError(false);
-      toast.success("Image uploaded successfully");
-    } catch {
-      toast.error("Failed to upload image");
-    } finally {
-      setIsUploading(false);
-    }
-  };
 
   const onSubmit = async (data: MenuItemFormValues) => {
     setIsSubmitting(true);
     try {
-      const payload = { ...data, imageUrl };
+      const payload = item?.imageUrl ? { ...data, imageUrl: item.imageUrl } : data;
       
       if (item) {
         await apiClient.patch(`/menu/items/${item.id}`, payload);
@@ -153,55 +113,6 @@ export function MenuItemModal({ isOpen, onClose, item, categories, onSuccess }: 
         </ModalHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-
-          {/* Image Upload */}
-          <div className="flex flex-col items-center justify-center gap-4">
-            <div className="relative w-32 h-32 rounded-xl border-2 border-dashed border-border flex items-center justify-center bg-muted overflow-hidden group">
-              {imageUrl && !imageLoadError ? (
-                <>
-                  <div className="relative w-full h-full">
-                    <Image
-                      src={imageUrl}
-                      alt="Preview"
-                      fill
-                      className="object-cover"
-                      referrerPolicy="no-referrer"
-                      onError={() => setImageLoadError(true)}
-                    />
-                  </div>
-                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                    <Button
-                      type="button"
-                      size="icon"
-                      variant="ghost"
-                      className="text-white hover:bg-white/20"
-                      onClick={() => {
-                        setImageUrl(null);
-                        setImageLoadError(false);
-                      }}
-                    >
-                      <X className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </>
-              ) : (
-                <div className="flex flex-col items-center text-text-muted">
-                  {isUploading ? <Loader2 className="w-6 h-6 animate-spin" /> : <ImageIcon className="w-8 h-8 mb-2 opacity-50" />}
-                  <span className="text-xs font-medium">
-                    {imageLoadError ? "Image unavailable" : "Upload Image"}
-                  </span>
-                </div>
-              )}
-              <input
-                type="file"
-                accept="image/*"
-                className="absolute inset-0 opacity-0 cursor-pointer"
-                onChange={handleImageUpload}
-                disabled={isUploading}
-              />
-            </div>
-          </div>
-
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Name *</Label>

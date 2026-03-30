@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   CheckCircle2,
   Globe2,
@@ -22,9 +22,11 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DishImage } from "@/components/menu/dish-image";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { StatePanel } from "@/components/ui/state-panel";
+import { buildCategoryImageMap } from "@/lib/menu-images";
 import { cn } from "@/lib/utils";
 import { TABLET_LANGUAGE_OPTIONS } from "@/lib/tablet-ordering";
 import type {
@@ -224,6 +226,10 @@ export function TabletOrderShell({ tableId }: TabletOrderShellProps) {
   const [lastOrderNumber, setLastOrderNumber] = useState<string | null>(null);
 
   const copy = COPY[resolveTabletCopyLanguage(activeLanguage)];
+  const categoryImageMap = useMemo(
+    () => buildCategoryImageMap(bootstrap?.categories ?? []),
+    [bootstrap?.categories],
+  );
 
   const loadBootstrap = useCallback(async () => {
     setIsLoading(true);
@@ -681,25 +687,23 @@ export function TabletOrderShell({ tableId }: TabletOrderShellProps) {
                         className="group overflow-hidden rounded-[28px] border border-slate-200 bg-white text-left shadow-sm transition hover:-translate-y-1 hover:border-primary/30 hover:shadow-lg"
                       >
                         <div className="flex h-full flex-col">
-                          {item.imageUrl ? (
-                            // eslint-disable-next-line @next/next/no-img-element -- menu media can come from dynamic third-party URLs outside Next image allowlists
-                            <img
-                              src={item.imageUrl}
+                          <div className="relative h-44">
+                            <DishImage
+                              imageUrl={item.imageUrl}
+                              fallbackImageUrl={categoryImageMap.get(item.categoryId) ?? null}
                               alt={item.name}
-                              className="h-44 w-full object-cover"
+                              className="h-full w-full"
+                              fallbackClassName="bg-[linear-gradient(135deg,rgba(250,204,21,0.22),rgba(249,115,22,0.12))]"
                             />
-                          ) : (
-                            <div className="flex h-44 items-end justify-between bg-[linear-gradient(135deg,rgba(250,204,21,0.22),rgba(249,115,22,0.12))] p-5">
-                              <div className="rounded-full border border-white/80 bg-white/80 px-3 py-1 text-xs font-black uppercase tracking-[0.24em] text-primary">
-                                {foodTypeLabel(item.foodType, activeLanguage)}
-                              </div>
-                              {item.isBestseller || item.isChefsSpecial ? (
-                                <div className="rounded-full border border-white/80 bg-white/80 px-3 py-1 text-xs font-semibold text-slate-700">
-                                  {item.isChefsSpecial ? "Chef's pick" : "Popular"}
-                                </div>
-                              ) : null}
+                            <div className="absolute left-5 top-5 rounded-full border border-white/80 bg-white/80 px-3 py-1 text-xs font-black uppercase tracking-[0.24em] text-primary shadow-sm">
+                              {foodTypeLabel(item.foodType, activeLanguage)}
                             </div>
-                          )}
+                            {item.isBestseller || item.isChefsSpecial ? (
+                              <div className="absolute right-5 top-5 rounded-full border border-white/80 bg-white/80 px-3 py-1 text-xs font-semibold text-slate-700 shadow-sm">
+                                {item.isChefsSpecial ? "Chef's pick" : "Popular"}
+                              </div>
+                            ) : null}
+                          </div>
 
                           <div className="flex flex-1 flex-col gap-4 p-5">
                             <div className="space-y-2">

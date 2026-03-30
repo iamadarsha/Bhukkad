@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useMemo, type ReactNode } from "react";
-import Image from "next/image";
+import { useMemo, useState, type ReactNode } from "react";
 import { Category, MenuItem } from "@/types";
 import { usePosStore } from "@/hooks/use-pos-store";
 import { ModifierSheet } from "./modifier-sheet";
@@ -20,11 +19,15 @@ interface ItemGridProps {
   activeCategoryId: string;
 }
 
-export function ItemGrid({ categories: _categories, items, activeCategoryId }: ItemGridProps) {
+export function ItemGrid({ categories, items, activeCategoryId }: ItemGridProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [filter, setFilter] = useState<string>("all"); // all, veg, non_veg, bestseller
   const [selectedItemForModifiers, setSelectedItemForModifiers] = useState<MenuItem | null>(null);
   const { addToCart, cart, updateQuantity } = usePosStore();
+  const categoryMap = useMemo(
+    () => new Map(categories.map((category) => [category.id, category])),
+    [categories],
+  );
 
   const fuse = useMemo(() => new Fuse(items, {
     keys: ['name', 'shortCode', 'tags'],
@@ -101,6 +104,7 @@ export function ItemGrid({ categories: _categories, items, activeCategoryId }: I
             <AnimatePresence mode="popLayout">
               {filteredItems.map(item => {
                 const cartItem = cart.find(i => i.itemId === item.id);
+                const category = categoryMap.get(item.categoryId);
                 
                 return (
                   <motion.div
@@ -110,23 +114,33 @@ export function ItemGrid({ categories: _categories, items, activeCategoryId }: I
                     className="group flex cursor-pointer flex-col overflow-hidden rounded-[var(--radius-xxl)] border border-border bg-card/95 shadow-[var(--shadow-elevation-1)] transition-all duration-200 hover:-translate-y-1 hover:border-primary/30 hover:shadow-[var(--shadow-elevation-2)]"
                     onClick={() => !cartItem && handleItemClick(item)}
                   >
-                    <div className="relative h-32 bg-muted">
-                      <ItemCardImage imageUrl={item.imageUrl} name={item.name} />
-                      
-                      <div className="absolute top-2 left-2 flex flex-col gap-1">
-                        <div className="rounded-md bg-card/95 p-1 shadow-sm">
-                          <div className={`h-3 w-3 rounded-full ${item.foodType === 'veg' ? 'bg-success' : item.foodType === 'non_veg' ? 'bg-error' : 'bg-warning'}`} />
+                    <div className="flex flex-1 flex-col gap-4 p-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0 space-y-2">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <div className="rounded-md bg-card/95 p-1 shadow-sm">
+                              <div className={`h-3 w-3 rounded-full ${item.foodType === 'veg' ? 'bg-success' : item.foodType === 'non_veg' ? 'bg-error' : 'bg-warning'}`} />
+                            </div>
+                            {item.isBestseller ? (
+                              <div className="rounded-full bg-warning px-2 py-1 text-[10px] font-bold text-secondary-foreground shadow-sm">
+                                BESTSELLER
+                              </div>
+                            ) : null}
+                            {item.prepTimeMinutes ? (
+                              <div className="rounded-full border border-border/70 bg-muted px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-text-muted">
+                                {item.prepTimeMinutes} min
+                              </div>
+                            ) : null}
+                          </div>
+                          <h3 className="line-clamp-2 text-sm font-bold leading-tight transition-colors group-hover:text-primary">
+                            {item.name}
+                          </h3>
+                          <p className="line-clamp-1 text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
+                            {item.shortCode || category?.name || "Menu Item"}
+                          </p>
                         </div>
                       </div>
-                      {item.isBestseller && (
-                        <div className="absolute top-2 right-2 rounded-full bg-warning px-2 py-1 text-[10px] font-bold text-secondary-foreground shadow-sm">
-                          BESTSELLER
-                        </div>
-                      )}
-                    </div>
 
-                    <div className="flex flex-1 flex-col p-3">
-                      <h3 className="mb-1 line-clamp-2 text-sm font-bold leading-tight transition-colors group-hover:text-primary">{item.name}</h3>
                       <div className="mt-auto flex items-end justify-between">
                         <span className="font-bold text-primary">{formatCurrency(item.basePrice)}</span>
                         
@@ -189,31 +203,6 @@ function FilterChip({ label, active, onClick, icon }: FilterChipProps) {
       {icon}
       {label}
     </button>
-  );
-}
-
-function ItemCardImage({ imageUrl, name }: { imageUrl?: string | null; name: string }) {
-  const [hasImageError, setHasImageError] = useState(false);
-
-  if (!imageUrl || hasImageError) {
-    return (
-      <div className="w-full h-full flex items-center justify-center text-muted-foreground/30">
-        <Zap className="w-8 h-8" />
-      </div>
-    );
-  }
-
-  return (
-    <div className="relative w-full h-full">
-      <Image
-        src={imageUrl}
-        alt={name}
-        fill
-        className="object-cover"
-        referrerPolicy="no-referrer"
-        onError={() => setHasImageError(true)}
-      />
-    </div>
   );
 }
 

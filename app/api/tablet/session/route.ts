@@ -14,6 +14,7 @@ import {
   isTabletOrderingEnabled,
   normalizeOutletSettings,
 } from '@/lib/tablet-ordering';
+import { resolveCategoryImage, resolveMenuItemImage } from '@/lib/menu-images';
 import { createOrder, OrderCreationError } from '@/lib/orders/create-order';
 import type {
   ModifierGroup,
@@ -180,7 +181,11 @@ async function loadTabletBootstrap(tableId: string): Promise<TabletOrderingBoots
     name: item.name,
     description: item.description ?? undefined,
     shortCode: item.shortCode ?? undefined,
-    imageUrl: item.imageUrl ?? undefined,
+    imageUrl:
+      resolveMenuItemImage({
+        itemImageUrl: item.imageUrl,
+        categoryId: item.categoryId,
+      }) ?? undefined,
     basePrice: roundCurrency(toNumber(item.basePrice)),
     foodType: normalizeFoodType(item.foodType),
     taxCategoryId: item.taxCategoryId ?? undefined,
@@ -218,7 +223,7 @@ async function loadTabletBootstrap(tableId: string): Promise<TabletOrderingBoots
       id: category.id,
       name: category.name,
       emoji: category.emoji ?? null,
-      imageUrl: category.imageUrl ?? null,
+      imageUrl: resolveCategoryImage(category.id, category.imageUrl),
       items: itemsByCategory.get(category.id) ?? [],
     }))
     .filter((category) => category.items.length > 0);
