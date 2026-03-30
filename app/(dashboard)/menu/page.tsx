@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Plus, Edit, Trash2, MoreVertical, Filter, Loader2, UtensilsCrossed } from "lucide-react";
+import { Search, Plus, Edit, Trash2, MoreVertical, Filter, Loader2, Utensils, UtensilsCrossed } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatCurrency } from "@/lib/utils/currency";
 import { toast } from "sonner";
@@ -55,16 +55,23 @@ export default function MenuPage() {
     <div className="app-canvas flex-1 overflow-y-auto">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 p-6">
         <section className="app-panel relative overflow-hidden rounded-[var(--radius-xxl)] p-6 sm:p-8">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(255,77,0,0.14),_transparent_36%),radial-gradient(circle_at_top_right,_rgba(56,178,172,0.12),_transparent_30%),linear-gradient(135deg,rgba(255,255,255,0.98),rgba(255,245,238,0.94))]" />
+          <div className="app-hero-glow absolute inset-0" />
           <div className="relative flex flex-col gap-6">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-              <div>
-                <h1 className="text-3xl font-black tracking-tight text-text-primary sm:text-4xl">
+              <div className="space-y-3">
+                <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-[11px] font-black uppercase tracking-[0.24em] text-primary">
+                  <Utensils className="h-3.5 w-3.5" />
+                  Bhukkad Menu Studio
+                </div>
+                <div>
+                  <h1 className="brand-display text-3xl font-semibold tracking-tight text-text-primary sm:text-4xl">
                   Menu Management
-                </h1>
-                <p className="mt-2 max-w-2xl text-sm font-medium leading-7 text-text-secondary sm:text-base">
-                  Configure your categories, items, and modifiers with calmer surfaces and clearer contrast.
-                </p>
+                  </h1>
+                  <p className="mt-2 max-w-3xl text-sm leading-7 text-text-secondary sm:text-base">
+                    Configure categories, items, and modifiers with the same calmer, high-contrast
+                    surface language that keeps the POS header readable during service.
+                  </p>
+                </div>
               </div>
 
               <div className="flex flex-wrap items-center gap-3">
@@ -72,7 +79,10 @@ export default function MenuPage() {
                   <Plus className="w-4 h-4 mr-2" />
                   Add Item
                 </Button>
-                <Button variant="outline" className="border-border/70 bg-card/85 font-bold">
+                <Button
+                  variant="outline"
+                  className="border-border/70 bg-background/90 font-bold shadow-[var(--shadow-elevation-1)]"
+                >
                   <Plus className="w-4 h-4 mr-2" />
                   Add Category
                 </Button>
