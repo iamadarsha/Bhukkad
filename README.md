@@ -1,4 +1,28 @@
+<div align="center">
+
 # Bhukkad
+
+### Full-stack restaurant operating system for outlet, POS, kitchen, and inventory workflows
+
+[![Next.js](https://img.shields.io/badge/Next.js-15-000?style=for-the-badge&logo=next.js)](#tech-stack)
+[![React](https://img.shields.io/badge/React-19-61dafb?style=for-the-badge&logo=react&logoColor=111)](#tech-stack)
+[![SQLite](https://img.shields.io/badge/SQLite-Drizzle-044a64?style=for-the-badge&logo=sqlite&logoColor=fff)](#tech-stack)
+[![Realtime](https://img.shields.io/badge/Realtime-Socket.IO-111?style=for-the-badge&logo=socketdotio)](#product-surface)
+
+</div>
+
+---
+
+## Recruiter Quick Scan
+
+| Signal | Details |
+|---|---|
+| Product | Restaurant OS covering dine-in service, POS, KOT, tablet ordering, inventory, reservations, reports, and settings |
+| What it demonstrates | Full-stack product execution, domain modeling, realtime workflows, auth/roles, and operator-first UI decisions |
+| Differentiator | Built around real restaurant service loops instead of a static admin dashboard |
+| Stack | Next.js 15, React 19, TypeScript, NextAuth, Drizzle, SQLite, Socket.IO, Tailwind CSS, Radix UI |
+
+---
 
 Bhukkad is a restaurant operations platform built as a single Next.js application with a custom Node server, SQLite persistence, and Socket.IO realtime updates. It covers dine-in service, POS workflows, kitchen ticketing, menu and modifier management, tablet ordering, inventory, customers, reservations, reports, and outlet settings.
 
