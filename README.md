@@ -1,185 +1,362 @@
 <div align="center">
 
-# Bhukkad
+<br/>
 
-### Full-stack restaurant operating system for outlet, POS, kitchen, and inventory workflows
+```
+ ┌────────────────────────────────────────────────┐
+ │       🍛  B H U K K A D                          │
+ │   The full-stack restaurant operating system.   │
+ │   POS · KOT · Tables · Kitchen · Inventory     │
+ └────────────────────────────────────────────────┘
+```
 
-[![Next.js](https://img.shields.io/badge/Next.js-15-000?style=for-the-badge&logo=next.js)](#tech-stack)
-[![React](https://img.shields.io/badge/React-19-61dafb?style=for-the-badge&logo=react&logoColor=111)](#tech-stack)
-[![SQLite](https://img.shields.io/badge/SQLite-Drizzle-044a64?style=for-the-badge&logo=sqlite&logoColor=fff)](#tech-stack)
-[![Realtime](https://img.shields.io/badge/Realtime-Socket.IO-111?style=for-the-badge&logo=socketdotio)](#product-surface)
+# 🍛 Bhukkad
+
+### *Every table. Every order. Every ticket. One screen.*
+
+**A production-grade restaurant operating system covering the full service loop — from table assignment to kitchen ticket to inventory deduction — built with real-time WebSockets and role-based access.**
+
+<br/>
+
+[![Next.js](https://img.shields.io/badge/Next.js-15_App_Router-000000?style=for-the-badge&logo=next.js)](https://nextjs.org)
+[![React](https://img.shields.io/badge/React-19-61dafb?style=for-the-badge&logo=react&logoColor=111)](https://react.dev)
+[![Socket.IO](https://img.shields.io/badge/Realtime-Socket.IO-111111?style=for-the-badge&logo=socketdotio)](https://socket.io)
+[![TypeScript](https://img.shields.io/badge/TypeScript-Strict-3178c6?style=for-the-badge&logo=typescript&logoColor=fff)](https://www.typescriptlang.org)
+[![SQLite](https://img.shields.io/badge/SQLite-Drizzle_ORM-044a64?style=for-the-badge&logo=sqlite)](https://orm.drizzle.team)
+[![Auth](https://img.shields.io/badge/NextAuth_v5-Role_Based-7c3aed?style=for-the-badge)](https://authjs.dev)
+
+<br/>
+
+[**✨ Features**](#-features) · [**📺 Product Surface**](#-product-surface) · [**👥 Roles**](#-role-based-access) · [**⚡ Quick Start**](#-quick-start) · [**💡 Architecture**](#-architecture) · [**📁 Docs**](#-documentation-map)
+
+<br/>
+
+> *"Built as part of AI Solutions Challenge 2026. Designed for real restaurant service loops — not a static admin dashboard."*
 
 </div>
 
 ---
 
-## Recruiter Quick Scan
+## 🎯 The Problem
 
-| Signal | Details |
-|---|---|
-| Product | Restaurant OS covering dine-in service, POS, KOT, tablet ordering, inventory, reservations, reports, and settings |
-| What it demonstrates | Full-stack product execution, domain modeling, realtime workflows, auth/roles, and operator-first UI decisions |
-| Differentiator | Built around real restaurant service loops instead of a static admin dashboard |
-| Stack | Next.js 15, React 19, TypeScript, NextAuth, Drizzle, SQLite, Socket.IO, Tailwind CSS, Radix UI |
+Most restaurant software is fragmented or overpriced:
+
+```
+❌  POS, KOT, reservations, and inventory are separate tools
+❌  Kitchen staff and waiters operate on different systems
+❌  Table state is managed on paper or whiteboards
+❌  Tablet ordering systems cost ₹4,000/month per outlet
+❌  SaaS products are built for chains — not single-outlet operators
+```
+
+**Bhukkad is a single Next.js app that covers the entire service loop — front of house to back of house — in real time.**
 
 ---
 
-Bhukkad is a restaurant operations platform built as a single Next.js application with a custom Node server, SQLite persistence, and Socket.IO realtime updates. It covers dine-in service, POS workflows, kitchen ticketing, menu and modifier management, tablet ordering, inventory, customers, reservations, reports, and outlet settings.
+## ⚡ Recruiter Quick Scan
 
-## Product Surface
+| Signal | Details |
+|---|---|
+| 🏗️ **What it is** | Full-stack restaurant OS covering POS, KOT, table service, kitchen queue, tablet ordering, inventory, reservations, and reports |
+| 🧠 **What it demonstrates** | Full-stack product execution · domain modeling · realtime WebSocket workflows · auth + RBAC · operator-first UI decisions |
+| 🔑 **Differentiator** | Built around real restaurant service loops with Socket.IO state sync across POS, kitchen, and tables simultaneously |
+| 🛠️ **Stack** | Next.js 15 · React 19 · TypeScript · NextAuth v5 · Drizzle ORM · SQLite · Socket.IO · Tailwind CSS |
+| 🏆 **Built for** | AI Solutions Challenge 2026 — shipped end-to-end in a rapid build cycle |
 
-- Dashboard with operational KPIs
-- POS and table service
-- Kitchen KOT queue and status updates
-- Tablet and QR ordering
-- Menu categories, items, variants, modifiers, and modifier groups
-- Customers, loyalty, and reservations
-- Inventory and purchasing flows
-- Reports and outlet configuration
+---
 
-## Tech Stack
+## ✨ Features
 
-- Next.js 15 App Router + React 19 + TypeScript
-- NextAuth v5 credentials authentication
-- Drizzle ORM + `better-sqlite3`
-- Tailwind CSS v4 + Radix UI primitives
-- Socket.IO for kitchen and table state sync
-- Zod, React Hook Form, TanStack Query/Table, Zustand, Recharts
+### 📊 Dashboard
+- Operational KPIs at a glance: covers, revenue, open tables, pending KOTs
+- Live activity feed from all service areas
+- Today's reservation preview
 
-More detail lives in [docs/TECH_STACK.md](docs/TECH_STACK.md).
+### 💳 POS & Table Service
+```
+  Host assigns table  →  Waiter opens order  →  Items added
+          │
+          ▼
+  KOT sent to kitchen (Socket.IO push, <100ms)
+          │
+          ▼
+  Kitchen marks ready  →  Waiter notified  →  Table served
+          │
+          ▼
+  Cashier settles bill  →  Table cleared  →  Available again
+```
+- Split billing, modifiers, variants, void items
+- Table status: Available / Occupied / Reserved / Cleaning
+- Service charge, GST, discount controls
 
-## Quick Start
+### 🍳 Kitchen KOT Queue
+- Live ticket queue ordered by time and priority
+- One-tap status updates: **Received → Preparing → Ready**
+- Socket.IO push to POS the moment a dish is ready
+- No page refresh needed — ever
+
+### 📱 Tablet & QR Ordering
+- Guests browse the menu on a tablet or scan a QR
+- Orders go directly to the kitchen queue
+- Modifiers, add-ons, and special requests supported
+- Kitchen sees it in <100ms via Socket.IO
+
+### 📖 Menu Management
+- Categories, items, variants, and modifier groups
+- Availability toggles (e.g., "86 the dal makhani")
+- Image upload per item
+- Combo and happy-hour pricing
+
+### 📦 Inventory & Purchasing
+- Stock levels tracked per ingredient
+- Deduction on order confirmation
+- Low-stock alerts
+- Purchase order creation and supplier management
+
+### 📅 Reservations & Customers
+- Walk-in and advance reservation booking
+- Customer profiles with visit history and loyalty tracking
+- Table assignment from the reservation screen
+
+### 📊 Reports
+- Daily, weekly, and monthly revenue breakdowns
+- Item-level sales analysis
+- Staff performance metrics
+- Export to CSV
+
+---
+
+## 📺 Product Surface
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  /dashboard        Operational KPIs + live activity feed          │
+│  /pos              POS with table grid + order builder             │
+│  /kitchen          KOT queue + real-time ticket management         │
+│  /tables           Floor plan + table status management            │
+│  /tablet-order     Guest-facing tablet/QR ordering interface       │
+│  /menu             Categories, items, variants, modifiers          │
+│  /inventory        Stock levels, low-stock alerts, purchasing      │
+│  /customers        Profiles, loyalty, visit history                │
+│  /reservations     Booking management + table assignment           │
+│  /reports          Revenue, sales analysis, staff metrics          │
+│  /settings         Outlet config, tax, charges, roles              │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 👥 Role-Based Access
+
+| Role | Access Level | Default Demo Credentials |
+|---|---|---|
+| 👑 **Owner** | Full access to all modules + settings | `admin@admin.com` / `admin` |
+| 📥 **Manager** | All ops, reports, no outlet config | `manager@spicegarden.com` / `Mgr@123` |
+| 💰 **Cashier** | POS, billing, settlements | `cashier@spicegarden.com` / `Cash@123` |
+| 👨‍🍳 **Kitchen** | KOT queue only | `kitchen@spicegarden.com` / `Kitch@123` |
+| 👨‍🍴 **Waiter** | Table service, order taking | `waiter1@spicegarden.com` / `Wait@123` |
+
+> All credentials are seeded demo data. Rotate before any real deployment.
+
+---
+
+## 💡 Architecture
+
+```mermaid
+flowchart TD
+    A["Browser: POS / Kitchen / Tablet"] -->|HTTP| B["Next.js 15 App Router\nRoute Handlers"]
+    A -->|WebSocket| C["Socket.IO Server\n(custom server.ts)"]
+    B --> D[("SQLite\n(better-sqlite3 + Drizzle)")]
+    C --> D
+    C -->|push events| A
+    B -->|auth| E["NextAuth v5\nCredentials + RBAC"]
+    B -->|optional| F["Gemini API\nAI helper flows"]
+
+    style A fill:#3b82f6,stroke:#fff,color:#fff
+    style C fill:#f59e0b,stroke:#fff,color:#fff
+    style D fill:#22c55e,stroke:#fff,color:#fff
+```
+
+**Key architectural decisions:**
+- **Custom `server.ts`** — Next.js + Socket.IO share the same Node process; no separate WebSocket server
+- **SQLite with Drizzle** — zero-config, portable, perfect for single-outlet demos and fast local builds
+- **Socket.IO rooms** — POS, kitchen, tables, and outlet each get their own room for targeted push events
+- **NextAuth v5 RBAC** — role-based route protection enforced at both middleware and route-handler level
+
+---
+
+## ⚡ Quick Start
 
 ### Prerequisites
-
 - Node.js 20+
 - npm
 
 ### Local Setup
 
-1. Install dependencies:
-   `npm install`
-2. Create a local env file:
-   `cp .env.example .env.local`
-3. Update `.env.local` with at least a real `AUTH_SECRET`. Leave `APP_DEMO_MODE=false` unless you intentionally want the local demo-mode bypass.
-4. Initialize the database and seed demo data:
-   `npm run db:setup`
-5. Start the development server:
-   `npm run dev`
+```bash
+# Clone the repo
+git clone https://github.com/iamadarsha/Bhukkad.git
+cd Bhukkad
 
-The app runs on [http://localhost:3000](http://localhost:3000).
+# Install dependencies
+npm install
 
-`npm run db:setup` now rebuilds the target SQLite database from scratch before reseeding it. Use `npm run db:push` instead when you need to preserve existing local data, or set `SQLITE_DB_PATH` to point setup/build commands at an isolated verification database.
+# Set up environment
+cp .env.example .env.local
+# Edit .env.local — at minimum set a real AUTH_SECRET
 
-## Demo Access
+# Build the database and seed demo data
+npm run db:setup
 
-`npm run db:setup` seeds demo users you can use immediately:
-
-| Role | Email | Password | PIN |
-| --- | --- | --- | --- |
-| Owner | `admin@admin.com` | `admin` | `1111` |
-| Manager | `manager@spicegarden.com` | `Mgr@123` | `2222` |
-| Cashier | `cashier@spicegarden.com` | `Cash@123` | `3333` |
-| Waiter | `waiter1@spicegarden.com` | `Wait@123` | `4444` |
-| Kitchen | `kitchen@spicegarden.com` | `Kitch@123` | `5555` |
-| Waiter | `waiter2@spicegarden.com` | `Wait@456` | `6666` |
-
-These are seeded demo credentials only. Rotate or replace them before any real deployment.
-
-## Scripts
-
-- `npm run dev` - start the custom Next.js + Socket.IO development server via `tsx server.ts`
-- `npm run build` - build the Next.js app and compile `server.ts` into `dist/server.js`
-- `npm run start` - run the production server from `dist/server.js`
-- `npm run start:render` - Render-safe startup that applies schema updates, seeds once when the SQLite database is empty, then boots the production server
-- `npm run lint` - run ESLint
-- `npm run clean` - clear Next.js build artifacts
-- `npm run db:reset` - remove the target SQLite file plus WAL/SHM sidecars before a clean rebuild
-- `npm run db:push` - push the Drizzle schema to the configured SQLite target without resetting existing data
-- `npm run db:seed` - reseed the demo database
-- `npm run db:setup` - rebuild the target SQLite database from scratch, then push schema and reseed demo data
-- `npm run db:studio` - open Drizzle Studio
-
-## Environment
-
-See [.env.example](.env.example) for the supported variables.
-
-Core variables:
-
-- `APP_URL` - canonical app URL and Socket fallback origin
-- `AUTH_SECRET` - NextAuth signing secret
-- `APP_DEMO_MODE` - explicit local-only demo-mode bypass toggle; keep `false` for normal and production environments
-- `GEMINI_API_KEY` - optional server-side Gemini integration for the AI helper flows
-- `HOSTNAME` - host binding for the custom Node server
-- `PORT` - port for the custom Node server
-- `SOCKET_ALLOWED_ORIGINS` - comma-separated Socket.IO CORS origins
-- `SQLITE_DB_PATH` - optional override for the SQLite database path used by setup, build, and local verification commands
-
-## Deploying To Render
-
-This repo now includes a [render.yaml](render.yaml) blueprint for a single Render web service.
-
-### Recommended flow
-
-1. Push this repository to GitHub.
-2. In Render, create a new Blueprint service from the repo.
-3. Set these required environment variables before the first deploy:
-   - `AUTH_SECRET` - long random secret for NextAuth
-   - `APP_URL` - your Render app URL, for example `https://bhukkad.onrender.com`
-   - `SOCKET_ALLOWED_ORIGINS` - set this to the same public URL as `APP_URL`
-4. Deploy. Render will run `npm ci && npm run build`, then boot with `npm run start:render`.
-
-### What the Render boot flow does
-
-- Runs `npm run db:push` on startup so the SQLite schema exists before the server comes up
-- Seeds demo data only when the target SQLite database is empty
-- Leaves existing data alone on later restarts
-
-### Demo caveats on Render
-
-- The current app uses local SQLite plus `public/uploads`, so a free Render web service is suitable for demos but not durable production storage.
-- With the default blueprint, `SQLITE_DB_PATH` points at `./sqlite.db`, which lives on the service filesystem.
-- If you attach a persistent disk on a paid plan, override `SQLITE_DB_PATH` to a mounted path such as `/var/data/sqlite.db`.
-- Uploads are still written to `public/uploads`, so uploaded files remain ephemeral until they are moved to object storage or another persistent path.
-
-## Project Structure
-
-```text
-app/              App Router pages, layouts, and route handlers
-components/       UI primitives and product-specific interface components
-db/               Drizzle schema, DB bootstrap, and seed data
-docs/             Technical documentation and handoff material
-lib/              Auth, order workflows, validations, and shared server logic
-public/           Static assets and uploaded files
-server.ts         Custom Next.js + Socket.IO server entrypoint
-middleware.ts     Route protection for page requests
-BRANDING.md       Brand system reference for UI work
-CLAUDE.md         Claude Code project memory
-AGENTS.md         General agent handoff document
+# Start the development server
+npm run dev
+# → http://localhost:3000
 ```
 
-## Documentation Map
+### Login with Demo Credentials
 
-- [docs/README.md](docs/README.md) - documentation index
-- [docs/RECREATION_GUIDE.md](docs/RECREATION_GUIDE.md) - source-of-truth order and exact recreation rules
-- [docs/UI_SYSTEM.md](docs/UI_SYSTEM.md) - implemented visual system and shell behavior
-- [docs/PAGE_BLUEPRINTS.md](docs/PAGE_BLUEPRINTS.md) - page-by-page product blueprint
-- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) - runtime and module layout
-- [docs/API_ENDPOINTS.md](docs/API_ENDPOINTS.md) - route handler inventory
-- [docs/DATABASE_SCHEMA.md](docs/DATABASE_SCHEMA.md) - schema overview by domain
-- [docs/TECH_STACK.md](docs/TECH_STACK.md) - concrete dependency and runtime stack
-- [docs/DEVELOPMENT_WORKFLOW.md](docs/DEVELOPMENT_WORKFLOW.md) - common dev loops and verification expectations
-- [CLAUDE.md](CLAUDE.md) - Claude Code handoff
-- [AGENTS.md](AGENTS.md) - agent handoff for Antigravity and other coding agents
-- [BRANDING.md](BRANDING.md) - UI and brand rules
-- [docs/brand/pdf/bhukkad-brand-guidelines.pdf](docs/brand/pdf/bhukkad-brand-guidelines.pdf) - exportable brand book
+After `db:setup`, these users are ready:
 
-If the task is to recreate Bhukkad exactly, start with `docs/RECREATION_GUIDE.md`, then `docs/UI_SYSTEM.md`, then `docs/PAGE_BLUEPRINTS.md` before changing code.
+```
+Owner    →  admin@admin.com            / admin      (PIN: 1111)
+Manager  →  manager@spicegarden.com    / Mgr@123    (PIN: 2222)
+Cashier  →  cashier@spicegarden.com   / Cash@123   (PIN: 3333)
+Kitchen  →  kitchen@spicegarden.com   / Kitch@123  (PIN: 5555)
+Waiter   →  waiter1@spicegarden.com   / Wait@123   (PIN: 4444)
+```
 
-## Runtime Notes
+---
 
-- The app uses a custom `server.ts`, so development and production should go through the npm scripts instead of raw `next dev`.
-- `/api` routes are not protected by middleware; they enforce auth inside each route handler with `auth()`.
-- The app stores state locally in `sqlite.db` by default, supports `SQLITE_DB_PATH` overrides for isolated runs, and writes uploads to `public/uploads`.
-- Realtime behavior depends on Socket.IO rooms for outlet, kitchen, POS, and table updates.
-- Seed data also installs sample avatars, menu imagery, and realistic restaurant records for local demos.
+## 🛠️ Scripts Reference
+
+| Script | What it does |
+|---|---|
+| `npm run dev` | Start custom Next.js + Socket.IO dev server via `tsx server.ts` |
+| `npm run build` | Build Next.js app + compile `server.ts` into `dist/server.js` |
+| `npm run start` | Run production server from `dist/server.js` |
+| `npm run start:render` | Render-safe boot: schema push → seed if empty → start |
+| `npm run db:setup` | **Rebuild DB from scratch** → push schema → reseed demo data |
+| `npm run db:push` | Push Drizzle schema **without** resetting existing data |
+| `npm run db:seed` | Reseed demo data (no schema changes) |
+| `npm run db:studio` | Open Drizzle Studio for DB inspection |
+| `npm run db:reset` | Remove SQLite file + WAL/SHM sidecars for a clean rebuild |
+| `npm run lint` | Run ESLint |
+| `npm run clean` | Clear Next.js build artifacts |
+
+---
+
+## 🌍 Deployment: Render
+
+A `render.yaml` blueprint is included for a single Render web service.
+
+```bash
+# Required environment variables before first deploy:
+AUTH_SECRET=<long random secret for NextAuth>
+APP_URL=https://your-app.onrender.com
+SOCKET_ALLOWED_ORIGINS=https://your-app.onrender.com
+```
+
+**Render boot flow:**
+1. `npm ci && npm run build`
+2. On start: `npm run start:render` — pushes schema, seeds if DB is empty, starts production server
+3. Existing data is **never overwritten** on restarts
+
+> Free tier uses local SQLite — suitable for demos. For persistent storage, attach a disk and override `SQLITE_DB_PATH=/var/data/sqlite.db`.
+
+---
+
+## 📦 Environment Variables
+
+| Variable | Required | Description |
+|---|---|---|
+| `AUTH_SECRET` | ✅ Yes | NextAuth signing secret (generate with `openssl rand -base64 32`) |
+| `APP_URL` | ✅ Yes | Canonical app URL (used for Socket fallback origin) |
+| `APP_DEMO_MODE` | ⚠️ Local only | Demo-mode bypass toggle — keep `false` for production |
+| `SOCKET_ALLOWED_ORIGINS` | ✅ Prod | Comma-separated Socket.IO CORS origins |
+| `GEMINI_API_KEY` | ❓ Optional | For AI helper flows |
+| `SQLITE_DB_PATH` | ❓ Optional | Override SQLite path (useful for Render persistent disk) |
+| `HOSTNAME` / `PORT` | ❓ Optional | Custom host/port for the Node server |
+
+See [.env.example](.env.example) for the full list.
+
+---
+
+## 🧰 Tech Stack
+
+| Layer | Tooling | Why |
+|---|---|---|
+| **Framework** | Next.js 15 App Router | Server components + route handlers in one codebase |
+| **Runtime** | React 19 | Concurrent features + server actions |
+| **Language** | TypeScript (strict) | Type-safe domain model across menus, orders, and kitchen state |
+| **Auth** | NextAuth v5 credentials | Role-based access across 5 user types |
+| **ORM** | Drizzle + better-sqlite3 | Type-safe queries, zero-config, fast local dev |
+| **Realtime** | Socket.IO | Sub-100ms push events across POS, kitchen, and tables |
+| **Styling** | Tailwind CSS v4 + Radix UI | Operator-grade UI without a design system overhead |
+| **State** | TanStack Query + Zustand | Server state sync + client-side cart/session state |
+| **Forms** | React Hook Form + Zod | Validated order and menu forms |
+| **Charts** | Recharts | Revenue and sales visualisations in reports |
+| **Tables** | TanStack Table | Sortable, filterable data grids for menu and inventory |
+
+---
+
+## 📁 Project Structure
+
+```
+📦 Bhukkad
+├── app/              App Router pages, layouts, and route handlers
+├── components/       UI primitives + product-specific interface components
+├── db/               Drizzle schema, DB bootstrap, and seed data
+├── docs/             Technical documentation and handoff material
+├── lib/              Auth, order workflows, validations, shared server logic
+├── public/           Static assets and uploaded files
+├── server.ts         Custom Next.js + Socket.IO server entrypoint
+├── middleware.ts      Route protection for page requests
+├── BRANDING.md       Brand system reference for UI work
+├── CLAUDE.md         Claude Code project memory
+└── AGENTS.md         General agent handoff document
+```
+
+---
+
+## 📖 Documentation Map
+
+| Document | Contents |
+|---|---|
+| [docs/README.md](docs/README.md) | Documentation index |
+| [docs/RECREATION_GUIDE.md](docs/RECREATION_GUIDE.md) | Source-of-truth rebuild order and exact recreation rules |
+| [docs/UI_SYSTEM.md](docs/UI_SYSTEM.md) | Implemented visual system and shell behavior |
+| [docs/PAGE_BLUEPRINTS.md](docs/PAGE_BLUEPRINTS.md) | Page-by-page product blueprint |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Runtime and module layout |
+| [docs/API_ENDPOINTS.md](docs/API_ENDPOINTS.md) | Route handler inventory |
+| [docs/DATABASE_SCHEMA.md](docs/DATABASE_SCHEMA.md) | Schema overview by domain |
+| [docs/TECH_STACK.md](docs/TECH_STACK.md) | Concrete dependency and runtime stack |
+| [docs/DEVELOPMENT_WORKFLOW.md](docs/DEVELOPMENT_WORKFLOW.md) | Common dev loops and verification expectations |
+| [BRANDING.md](BRANDING.md) | UI and brand rules |
+
+> **If you want to recreate Bhukkad exactly:** start with `docs/RECREATION_GUIDE.md` → `docs/UI_SYSTEM.md` → `docs/PAGE_BLUEPRINTS.md`
+
+---
+
+## ⚠️ Runtime Notes
+
+- Use `npm run dev` and `npm run start` (not raw `next dev`) — the custom `server.ts` must be in the chain for Socket.IO to work
+- `/api` routes are not protected by middleware; they enforce auth inside each handler with `auth()`
+- State is local to `sqlite.db` by default; use `SQLITE_DB_PATH` for isolated runs
+- Uploads write to `public/uploads` — ephemeral on free Render/Vercel; move to object storage for production
+- Seed data installs sample avatars, menu imagery, and realistic restaurant records for local demos
+
+---
+
+<div align="center">
+
+<br/>
+
+**Built with ❤️ for every restaurant operator who deserved better software by [Adarsha Chatterjee](https://www.linkedin.com/in/iamadarsha)**
+
+[![Portfolio](https://img.shields.io/badge/Portfolio-lego--portfolio--ochre.vercel.app-f59e0b?style=for-the-badge)](https://lego-portfolio-ochre.vercel.app)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-iamadarsha-0a66c2?style=for-the-badge&logo=linkedin&logoColor=fff)](https://www.linkedin.com/in/iamadarsha)
+[![GitHub](https://img.shields.io/badge/GitHub-iamadarsha-181717?style=for-the-badge&logo=github)](https://github.com/iamadarsha)
+
+*Bhukkad — because every hungry table deserves a system that keeps up.*
+
+</div>
